@@ -50,6 +50,14 @@ function clientIp(req) {
   return (Array.isArray(f) ? f[0] : f || "").split(",")[0].trim() || "unknown";
 }
 
+// ما يراه الطلاب: كل شيء عدا صفقات المزاد ومكافآت التحديات ورسوم الإعارات
+function publicView(d) {
+  const { transfers, awards, loanLog, ...rest } = d || {};
+  // الإعارات تظهر للطلاب بلا رسومها
+  rest.loanLog = (loanLog || []).map(({ day, slot, p, from, to }) => ({ day, slot, p, from, to }));
+  return rest;
+}
+
 function validData(d) {
   return (
     d && typeof d === "object" && !Array.isArray(d) &&
@@ -80,7 +88,8 @@ export default async function handler(req, res) {
       return res.status(200).json({
         configured: true,
         version: Number(ver || 0),
-        data: raw ? JSON.parse(raw) : null,
+        data: raw ? publicView(JSON.parse(raw)) : null,
+        full: false,
       });
     }
 
@@ -105,6 +114,16 @@ export default async function handler(req, res) {
     }
 
     if (body.action === "login") return res.status(200).json({ ok: true });
+
+    if (body.action === "load") {
+      const [raw, ver] = await redis(["MGET", KEY_DATA, KEY_VER]);
+      return res.status(200).json({
+        configured: true,
+        version: Number(ver || 0),
+        data: raw ? JSON.parse(raw) : null,
+        full: true,
+      });
+    }
 
     if (body.action === "save") {
       if (!validData(body.data)) return res.status(400).json({ error: "بيانات غير مكتملة" });
