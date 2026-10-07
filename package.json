@@ -1,0 +1,6 @@
+{
+  "name": "ghiras-league",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=18" }
+}
