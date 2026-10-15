@@ -54,7 +54,7 @@ button,input,select{font:inherit;color:inherit}
 .hero-meta{font-size:14px;text-align:start}
 .hero-meta b{font-family:var(--display);font-size:20px;color:var(--flag-bright)}
 .progress{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:16px;position:relative}
-.pday{display:grid;grid-template-columns:repeat(4,1fr);gap:2px}
+.pday{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:2px}
 .pday span{height:6px;border-radius:2px;background:rgba(255,255,255,.16)}
 .pday span.on{background:var(--flag-bright)}
 .plabel{font-size:11px;opacity:.7;margin-top:3px}
@@ -442,6 +442,8 @@ if(!S.fixtures||!S.fixtures.length){
     S.fixtures=[];
     ORDER.forEach((pair,i)=>{let s=1;pair.forEach(m=>m.forEach(([a,b])=>{const flip=i>=3;S.fixtures.push({day:i+1,slot:s++,a:flip?b:a,b:flip?a:b})}))});
   }
+  // مباراتان إضافيتان في الجولة الثالثة
+  [{day:3,slot:5,a:'suqoor',b:'asood'},{day:3,slot:6,a:'liyooth',b:'fuhood'}].forEach(f=>{if(!S.fixtures.some(x=>x.day===f.day&&x.slot===f.slot))S.fixtures.push(f)});
   
   }
 ensure();
@@ -509,7 +511,7 @@ const teamOpts=(sel,ids)=>(ids||S.teams.map(t=>t.id)).map(id=>`<option value="${
 function hero(){
   const done=S.matches.length,total=S.fixtures.length,ld=lastDay();
   const sc=scorers(),top=sc[0],goals=S.matches.reduce((s,m)=>s+m.ga+m.gb,0),lead=table()[0];
-  const prog=[1,2,3,4,5,6].map(d=>`<div><div class="pday">${[1,2,3,4].map(s=>`<span class="${matchAt(d,s)?'on':''}"></span>`).join('')}</div><div class="plabel">${ar(d)}</div></div>`).join('');
+  const prog=[1,2,3,4,5,6].map(d=>`<div><div class="pday">${S.fixtures.filter(f=>f.day===d).sort((x,y)=>x.slot-y.slot).map(f=>`<span class="${matchAt(d,f.slot)?'on':''}"></span>`).join('')}</div><div class="plabel">${ar(d)}</div></div>`).join('');
   return `<header class="hero"><div class="hero-top"><span class="brand"><img src="${LOGO}" alt="شعار غراس" width="58" height="56"><span><h1>دوري غراس</h1><small>تنظيم فريق غراس التطوعي</small></span></span>
   <span class="hpill">${ld?dayLabel(ld):'قبل الانطلاق'}</span></div>
   <div class="hero-meta num">${ar(done)} من ${ar(total)} مباراة</div>
@@ -728,7 +730,7 @@ function pResults(){
   const body=ms.length?ms.map(m=>`<div class="pr-match"><div class="pr-line"><span class="a${m.ga<m.gb?' lose':''}">${crest(m.a)}${esc(T(m.a).name)}</span><span class="pr-score"><span>${ar(m.ga)}</span><span>${ar(m.gb)}</span></span><span class="b${m.gb<m.ga?' lose':''}">${esc(T(m.b).name)}${crest(m.b)}</span></div>
     <div class="pr-sc"><span>${sc(m,m.a)}</span><span class="b">${sc(m,m.b)}</span></div></div>`).join(''):'<div style="opacity:.7">لا نتائج لهذه الجولة بعد.</div>';
   const g=ms.reduce((t,m)=>t+m.ga+m.gb,0);
-  return posterShell('نتائج '+dayLabel(d),(S.dayDates[d]?esc(S.dayDates[d])+' · ':'')+ar(ms.length)+' مباريات · '+ar(g)+' هدفًا',body,'',ms.length===4?'انتهت':null);
+  return posterShell('نتائج '+dayLabel(d),(S.dayDates[d]?esc(S.dayDates[d])+' · ':'')+ar(ms.length)+' مباريات · '+ar(g)+' هدفًا',body,'',ms.length>=S.fixtures.filter(f=>f.day===d).length?'انتهت':null);
 }
 function pScorers(){
   const d=ui.pday,sc=scorers(d).slice(0,6);let rank=0,prev=null;
