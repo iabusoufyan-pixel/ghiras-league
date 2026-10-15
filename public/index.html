@@ -328,6 +328,10 @@ h1,h2,h3,h4,.brand h1,.hpill,.tab,.pts,.score,.cr,.rank,.sc-name,.sc-g,.mbig,.ch
 .np-stars li{display:grid;gap:1px}
 .np-stars b{font-family:var(--display);font-size:15px}
 .np-stars span{font-size:13.5px;color:#3a3d3a;line-height:1.6}
+.np-tribute{border-top:2px solid #1d1f1d;padding-top:10px;text-align:center}
+.np-tribute-k{display:inline-block;font-family:var(--display);font-weight:700;font-size:15px;color:#fff;background:#3d8b3d;padding:4px 14px;border-radius:99px}
+.np-tribute-h{font-family:var(--display);font-weight:700;font-size:clamp(28px,8vw,40px);line-height:1.2;margin:8px 0 4px;color:#1d1f1d}
+.np-tribute .np-quote{border-top:0;padding-top:4px}
 .np-quote{margin:0;padding:12px 4px;border-top:2px solid #1d1f1d;border-bottom:2px solid #1d1f1d;text-align:center}
 .np-quote p{font-family:var(--display);font-weight:500;font-size:18px;line-height:1.6;margin:0}
 .np-quote p::before{content:"«";color:#3d8b3d;font-weight:700}
@@ -803,7 +807,8 @@ function newspaper(text,d){
   const teamArts=teams.map(a=>{const [k,...rest]=a.h.split('|');return `<article class="np-art"><div class="np-kicker">${esc(k.trim())}</div><h4 class="np-art-h">${esc(rest.join('|').trim())}</h4>${npBody(a.body)}</article>`}).join('');
   const starsHtml=stars?npBox(stars.h,`<ol class="np-stars">${stars.body.map(L=>{const m=clean(L).match(/^\*([^*]+)\*\s*(.*)$/);return m?`<li><b>${esc(m[1].replace(/[:：]\s*$/,''))}</b><span>${inl(m[2])}</span></li>`:`<li>${inl(clean(L))}</li>`}).join('')}</ol>`,'np-dark'):'';
   const plainArts=plain.map(a=>`<article class="np-art np-wide"><h4 class="np-art-h">${inl(a.h)}</h4>${npBody(a.body)}</article>`).join('');
-  const quoteHtml=quote?`<blockquote class="np-quote"><p>${inl(clean(quote.lines.join(' ')).replace(/^\*?تحية خاصة لأبي راضي:?\*?\s*/,''))}</p><cite>${esc(unstar(clean(quote.raw)).split(/[:：]/)[0])}</cite></blockquote>`:'';
+  const quoteHtml=quote?(()=>{const parts=quote.h.split('|');const kick=parts[0].trim(),head=parts.slice(1).join('|').trim();
+    return `<section class="np-tribute"><div class="np-tribute-k">👑 ${esc(kick)}</div>${head?`<h3 class="np-tribute-h">${esc(head)}</h3>`:''}<blockquote class="np-quote"><p>${quote.body.map(L=>inl(clean(L))).join(' ')}</p></blockquote></section>`})():'';
   const numsHtml=nums?npBox(nums.h,npBody(nums.body),'np-nums'):'';
   const fxHtml=fx?npBox(fx.h,npBody(fx.body),''):'';
   const pollHtml=poll?npBox(poll.h,npBody(poll.body),'np-poll'):'';
