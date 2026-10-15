@@ -685,7 +685,7 @@ function vSquads(){
     return `<section class="panel sq"><div class="sq-head">${teamChip(t.id)}${canWrite?`<button class="btn link" data-act="sqedit" data-k="${t.id}">تعديل</button>`:''}</div>
     <div class="mini-pitch" style="background-image:url(${pitch()})">${m.html}</div>
     ${m.off.length?`<div class="sq-off note">أيضًا: ${m.off.map(r=>ar(r.n)+' '+esc(r.p)+(r.c?' (C)':'')).join('، ')}</div>`:''}</section>`}).join('')}</div>
-    <p class="note">C تعني كابتن الفريق، والحروف الملوّنة بجانب الأسماء هي فئة اللاعب: <i class="cat cat-a">أ</i> <i class="cat cat-b">ب</i> <i class="cat cat-c">ج</i>. عدّل التشكيلة بعد كل صفقة في المزاد حتى تبقى صحيحة.</p>`;
+    <p class="note">C تعني كابتن الفريق، والحروف الملوّنة بجانب الأسماء هي فئة اللاعب: <i class="cat cat-a">أ</i> <i class="cat cat-b">ب</i> <i class="cat cat-c">ج</i>. تنتقل أسماء اللاعبين بين التشكيلات تلقائيًا عند تسجيل صفقة المزاد أو لاعب التعويض، ويبقى ترتيب المراكز والكابتن بيد اللجنة.</p>`;
 }
 function pLineup(){
   const id=ui.pteam,t=T(id),m=pitchMarkers(id,'plm',true);
@@ -919,9 +919,36 @@ async function load(silent){
     adopt(j);return true}
   catch(e){LOADED=true;if(!silent)toast('تعذّر تحميل آخر البيانات، والمعروض بيانات البداية','err');return !silent}
 }
+
+/* ---------- نقل اللاعبين بين التشكيلات حسب صفقات المزاد ---------- */
+const nm=v=>String(v||'').replace(/[ً-ْـ]/g,'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/\s+/g,' ').trim();
+function findRow(team,name){const L=(S.lineups[team]||[]),k=nm(name);if(!k)return null;
+  let r=L.find(x=>nm(x.p)===k);if(r)return r;
+  const c=L.filter(x=>{const a=nm(x.p);return a&&(k.includes(a)||a.includes(k))});return c.length===1?c[0]:null}
+function freeN(team,pref){const used=new Set((S.lineups[team]||[]).map(x=>x.n));if(pref!=null&&!used.has(pref))return pref;let n=2;while(used.has(n))n++;return n}
+// ينقل لاعبًا من فريق إلى آخر، ويعيد true إن صار في الفريق الجديد
+function movePlayer(name,from,to,n){S.lineups[to]=S.lineups[to]||[];
+  const r=findRow(from,name);
+  if(r){S.lineups[from]=S.lineups[from].filter(x=>x!==r);S.lineups[to].push({...r,n:freeN(to,n!=null?n:r.n),c:false});return true}
+  if(findRow(to,name))return true;
+  S.lineups[to].push({n:freeN(to,n),p:name,c:false});S.floaters=(S.floaters||[]).filter(f=>nm(f)!==nm(name));return true}
+function applyTransfer(x){S.lineups=S.lineups||{};
+  if(x.smv&&x.smv!==x.swap){movePlayer(x.smv,x.from,x.to);delete x.smv}
+  const pr=!x.mv?findRow(x.from,x.player):null, sr=x.swap&&x.smv!==x.swap?findRow(x.to,x.swap):null;
+  if(pr&&sr){S.lineups[x.from]=S.lineups[x.from].filter(r=>r!==pr);S.lineups[x.to]=S.lineups[x.to].filter(r=>r!==sr);
+    S.lineups[x.to].push({...pr,n:sr.n,c:false});S.lineups[x.from].push({...sr,n:pr.n,c:false});x.mv=true;x.smv=x.swap;return}
+  if(!x.mv){movePlayer(x.player,x.from,x.to);x.mv=true}
+  if(x.swap&&x.smv!==x.swap){movePlayer(x.swap,x.to,x.from);x.smv=x.swap}}
+function revertTransfer(x){if(x.smv){movePlayer(x.smv,x.from,x.to);delete x.smv}if(x.mv){movePlayer(x.player,x.to,x.from);delete x.mv}}
+// تُشغَّل عند دخول اللجنة: تطبّق الصفقات التي لم تنعكس على التشكيلات بعد
+function syncTransfers(){let ch=false;S.fixes=S.fixes||[];
+  if(!S.fixes.includes('yousef-ateeq')){const x=S.transfers.find(t=>nm(t.player).includes(nm('محمد اليوسف'))&&t.from==='liyooth'&&t.to==='fuhood');
+    if(x){if(x.swap!=='العتيق'){x.swap='العتيق'}S.fixes.push('yousef-ateeq');ch=true}}
+  S.transfers.forEach(x=>{if(!x.mv||(x.swap||null)!==(x.smv||null)){applyTransfer(x);ch=true}});
+  return ch}
 async function login(pin,quiet){
   const {status:st,j}=await api({action:'login',pin});
-  if(st===200){PIN=pin;canWrite=true;ui.login=false;try{localStorage.setItem('ghiras-pin',pin)}catch(e){};await load();render();if(!quiet)toast('مرحبًا بك في وضع اللجنة');return}
+  if(st===200){PIN=pin;canWrite=true;ui.login=false;try{localStorage.setItem('ghiras-pin',pin)}catch(e){};await load();if(FULL&&syncTransfers()){render();await save('طُبّقت الصفقات على التشكيلات')}render();if(!quiet)toast('مرحبًا بك في وضع اللجنة');return}
   if(!quiet)toast(st===429?'محاولات كثيرة، انتظر ربع ساعة ثم حاول':st===401?'الرمز غير صحيح':(j.error||'تعذّر الدخول'),'err');
   if(st===401)try{localStorage.removeItem('ghiras-pin')}catch(e){}
 }
@@ -980,7 +1007,7 @@ root.addEventListener('click',async ev=>{
     if(rec.from===rec.to){toast('اختر فريقين مختلفين','err');return}
     if(!(rec.amount>0)&&!rec.swap){toast('اكتب مبلغ المزايدة أو لاعب التعويض','err');return}
     if(rec.amount<0){toast('المبلغ لا يكون سالبًا','err');return}
-    S.transfers.push(rec);render();await save('سُجّلت الصفقة');return}
+    S.transfers.push(rec);applyTransfer(rec);render();await save('سُجّلت الصفقة ونُقل اللاعب في التشكيلات');return}
   if(act==='ladd2'){
     const g=id=>document.getElementById(id).value;
     const day=+g('lf-day'),slot=+g('lf-slot'),f=S.fixtures.find(x=>x.day===day&&x.slot===slot),m=matchAt(day,slot);
@@ -1001,9 +1028,9 @@ root.addEventListener('click',async ev=>{
   if(act==='tswcancel'){ui.tswap=null;render();return}
   if(act==='tswsave'){const x=S.transfers.find(t=>t.id===b.dataset.id);if(!x)return;const v=(document.getElementById('tsw-'+x.id).value||'').trim();
     if(v&&v===x.player){toast('لاعب التعويض هو نفس اللاعب المنتقل','err');return}
-    if(v)x.swap=v;else delete x.swap;ui.tswap=null;render();await save(v?'حُفظ لاعب التعويض':'أُزيل لاعب التعويض');return}
+    if(v)x.swap=v;else delete x.swap;applyTransfer(x);ui.tswap=null;render();await save(v?'حُفظ لاعب التعويض':'أُزيل لاعب التعويض');return}
   if(act==='taskdel'){ui.confirm='t'+b.dataset.id;render();return}
-  if(act==='tdel'){S.transfers=S.transfers.filter(x=>x.id!==b.dataset.id);ui.confirm=null;render();await save('حُذفت الصفقة');return}
+  if(act==='tdel'){const dx=S.transfers.find(x=>x.id===b.dataset.id);if(dx)revertTransfer(dx);S.transfers=S.transfers.filter(x=>x.id!==b.dataset.id);ui.confirm=null;render();await save('حُذفت الصفقة');return}
   if(act==='ptype'){ui.ptype=b.dataset.k;render();return}
   if(act==='aadd'){const g=id=>document.getElementById(id).value;
     const rec={id:uid(),cid:g('af-ch'),team:g('af-team'),round:+g('af-round'),amount:+g('af-amount'),note:g('af-note').trim()};
