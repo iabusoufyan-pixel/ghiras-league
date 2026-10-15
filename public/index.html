@@ -217,9 +217,9 @@ body{background:var(--bg)}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
 
 /* poster: fixed light look, it is the published image */
-.poster{width:540px;height:675px;position:relative;background:#ffffff;color:#262a26;font-family:var(--body);overflow:hidden;direction:rtl}
+.poster{width:540px;min-height:675px;position:relative;background:#ffffff;color:#262a26;font-family:var(--body);overflow:hidden;direction:rtl}
 
-.po-in{position:absolute;inset:0;padding:30px 34px 22px;display:flex;flex-direction:column;z-index:1}
+.po-in{position:relative;min-height:675px;padding:30px 34px 22px;display:flex;flex-direction:column;z-index:1}
 .po-head{display:flex;justify-content:space-between;align-items:center}
 .po-brand{display:flex;align-items:center;gap:8px;font-weight:900;font-size:18px}
 .po-brand img{width:46px;height:44px;object-fit:contain}
@@ -228,7 +228,7 @@ body{background:var(--bg)}
 .po-sub{font-size:15px;font-weight:700;color:#7a847c;margin-top:6px}
 .po-stripe{height:4px;margin:16px -34px 0;background:linear-gradient(90deg,#a9c23f 0 22%,#3d8b3d 22% 100%)}
 .po-body{flex:1;margin-top:16px;display:flex;flex-direction:column;min-height:0}
-.po-foot{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;font-weight:700;color:#7a847c;border-top:1px solid #e6eae6;padding-top:10px}
+.po-foot{margin-top:14px;display:flex;justify-content:space-between;align-items:center;font-size:12.5px;font-weight:700;color:#7a847c;border-top:1px solid #e6eae6;padding-top:10px}
 .pt-crest{width:36px;height:36px;border-radius:50%;background:#ebf4e9;color:#3d8b3d;display:grid;place-items:center;font-size:16px;font-weight:900;flex:none}
 .pt-head,.pt-row{display:grid;grid-template-columns:38px 1fr 34px 34px 34px 34px 46px 58px;align-items:center;text-align:center}
 .pt-head{font-size:12.5px;color:#7a847c;font-weight:700;padding:0 0 8px}
@@ -241,7 +241,7 @@ body{background:var(--bg)}
 .pt-row.first>span:first-child{color:#3d8b3d}
 .pt-row.first .pt-crest{background:#3d8b3d;color:#fff}
 .pt-row.first .pt-pts{background:#3d8b3d;color:#fff;border-radius:12px;height:44px;display:grid;place-items:center;margin-inline:4px;box-shadow:0 6px 14px rgba(61,139,61,.35)}
-.pr-match{padding:10px 4px;border-bottom:1px solid #eef1ee}
+.pr-match{padding:14px 4px;border-bottom:1px solid #eef1ee}
 .pr-match:last-child{border-bottom:0}
 .pr-line{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px}
 .pr-line .a,.pr-line .b{display:flex;align-items:center;gap:9px;font-weight:900;font-size:21px}
@@ -251,7 +251,8 @@ body{background:var(--bg)}
 .pr-score{display:flex;border-radius:10px;overflow:hidden;font-weight:900;font-size:28px;line-height:1;color:#fff}
 .pr-score span{padding:9px 13px;min-width:46px;text-align:center;background:#262a26}
 .pr-score span+span{background:#3d8b3d}
-.pr-sc{display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:12.5px;color:#7a847c;margin-top:5px;padding-inline:46px;line-height:1.45}
+.pr-sc{display:grid;grid-template-columns:1fr 1fr;gap:14px;font-size:15px;font-weight:600;color:#5d665e;margin-top:8px;padding-inline:4px;line-height:1.55}
+.pr-n{display:block;font-size:12px;font-weight:700;color:#9aa29b;text-align:center;margin-bottom:6px}
 .pr-sc .b{text-align:end}
 .ps-hero{position:relative;display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-radius:16px;background:linear-gradient(120deg,#262a26,#2f4a2f);color:#fff;overflow:hidden;margin-bottom:8px}
 .ps-hero::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(115deg,rgba(255,255,255,.05) 0 2px,transparent 2px 18px)}
@@ -261,11 +262,11 @@ body{background:var(--bg)}
 .ps-hero em{font-style:normal;font-size:13px;opacity:.7}
 .ps-hg{font-size:70px;font-weight:900;line-height:.9}
 .ps-hg sub{font-size:14px;font-weight:700;opacity:.7;vertical-align:baseline;margin-inline-start:4px}
-.ps-row{display:grid;grid-template-columns:44px 1fr 60px;align-items:center;height:60px;border-radius:12px;padding-inline-end:12px}
+.ps-row{display:grid;grid-template-columns:44px 1fr 60px;align-items:center;min-height:60px;padding-block:6px;border-radius:12px;padding-inline-end:12px}
 .ps-row:nth-child(odd){background:#f5f7f5}
-.ps-rank{font-weight:900;font-size:22px;color:#c3c9c4;text-align:center}
+.ps-rank{font-weight:900;font-size:22px;color:#3d8b3d;background:#ebf4e9;border-radius:50%;width:36px;height:36px;display:grid;place-items:center;justify-self:center;line-height:1}
 .ps-name{font-weight:800;font-size:21px;line-height:1.2}
-.ps-team{font-size:13px;color:#7a847c}
+.ps-team{font-size:14.5px;font-weight:600;color:#7a847c}
 .ps-g{font-weight:900;font-size:26px;text-align:end}
 .pc-row{display:flex;justify-content:space-between;align-items:center;padding:8px 16px;border-radius:12px;margin-bottom:6px;background:transparent}
 .pc-row:nth-child(odd){background:#f5f7f5}
@@ -385,6 +386,7 @@ h1,h2,h3,h4,.brand h1,.hpill,.tab,.pts,.score,.cr,.rank,.sc-name,.sc-g,.mbig,.ch
 .fan-h{display:flex;justify-content:space-between;align-items:center;padding-inline:4px}
 .fan-h h2{margin:0;font-family:var(--display);font-weight:900;font-size:20px}
 .btn.share{display:inline-flex;align-items:center;gap:6px;border-radius:99px;background:var(--accent);border-color:var(--accent);color:#fff;padding:7px 14px}
+.fan-group{display:grid;gap:14px;scroll-margin-top:64px}
 .fan-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-inline:2px}
 .fan-chips::-webkit-scrollbar{display:none}
 .fan-chips button{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:6px 14px;font-weight:700;font-size:13.5px;cursor:pointer;color:var(--muted)}
@@ -727,13 +729,13 @@ function pTable(){
 function pResults(){
   const d=ui.pday,ms=played().filter(m=>m.day===d);
   const sc=(m,t)=>{const c={};(m.goals||[]).filter(g=>g.t===t).forEach(g=>{const k=canon(g.p);c[k]=(c[k]||0)+1});return Object.entries(c).map(([p,n])=>esc(p)+(n>1?' ×'+ar(n):'')).join('، ')};
-  const body=ms.length?ms.map(m=>`<div class="pr-match"><div class="pr-line"><span class="a${m.ga<m.gb?' lose':''}">${crest(m.a)}${esc(T(m.a).name)}</span><span class="pr-score"><span>${ar(m.ga)}</span><span>${ar(m.gb)}</span></span><span class="b${m.gb<m.ga?' lose':''}">${esc(T(m.b).name)}${crest(m.b)}</span></div>
+  const body=ms.length?ms.sort((x,y)=>x.slot-y.slot).map(m=>`<div class="pr-match"><span class="pr-n">مباراة ${ar(m.slot)}</span><div class="pr-line"><span class="a${m.ga<m.gb?' lose':''}">${crest(m.a)}${esc(T(m.a).name)}</span><span class="pr-score"><span>${ar(m.ga)}</span><span>${ar(m.gb)}</span></span><span class="b${m.gb<m.ga?' lose':''}">${esc(T(m.b).name)}${crest(m.b)}</span></div>
     <div class="pr-sc"><span>${sc(m,m.a)}</span><span class="b">${sc(m,m.b)}</span></div></div>`).join(''):'<div style="opacity:.7">لا نتائج لهذه الجولة بعد.</div>';
   const g=ms.reduce((t,m)=>t+m.ga+m.gb,0);
   return posterShell('نتائج '+dayLabel(d),(S.dayDates[d]?esc(S.dayDates[d])+' · ':'')+ar(ms.length)+' مباريات · '+ar(g)+' هدفًا',body,'',ms.length>=S.fixtures.filter(f=>f.day===d).length?'انتهت':null);
 }
 function pScorers(){
-  const d=ui.pday,sc=scorers(d).slice(0,6);let rank=0,prev=null;
+  const d=ui.pday,all=scorers(d),top=all.filter((e,i)=>i<10&&(e.g>1||i<5)),cut=top.length?top[top.length-1].g:0,sc=all.filter((e,i)=>i<top.length||(cut>1&&e.g===cut));let rank=0,prev=null;
   const body=sc.map((e,i)=>{if(e.g!==prev){rank=i+1;prev=e.g}const tm=isFloat(e.name)?'لاعب عائم':esc(T(homeTeam(e)).name);
     if(i===0)return `<div class="ps-hero"><div><small>المتصدر</small><strong>${esc(e.name)}</strong><em>${tm}</em></div><span class="ps-hg">${ar(e.g)}<sub>${e.g>2&&e.g<11?'أهداف':'هدف'}</sub></span></div>`;
     return `<div class="ps-row"><span class="ps-rank">${ar(rank)}</span><div><div class="ps-name">${esc(e.name)}</div><div class="ps-team">${tm}</div></div><span class="ps-g">${ar(e.g)}</span></div>`}).join('')||'<div style="opacity:.7">لا أهداف بعد.</div>';
@@ -878,14 +880,14 @@ function fanView(){
     ui.pday=Math.max(1,ld);
   }
   html+=sec('scorers','الهدافون','',withPid('scorers',pScorers));
-  html+=sec('lineups','التشكيلات',`<div class="fan-chips">${S.teams.map(t=>`<button data-act="steam" data-k="${t.id}" aria-pressed="${t.id===ui.pteam}">${esc(t.name)}</button>`).join('')}</div>`,withPid('lineups',pLineup));
+  const keepTeam=ui.pteam;html+=`<div id="sec-lineups" class="fan-group">${S.teams.map(t=>{ui.pteam=t.id;return sec('lineup-'+t.id,'تشكيلة '+esc(t.name),'',withPid('lineup-'+t.id,pLineup))}).join('')}</div>`;ui.pteam=keepTeam;
   html+=sec('challenges','التحديات','',withPid('challenges',pChallenges));
   ui.pday=keep;
   return `<div class="fan">${head}${status()}${html}<p class="fan-foot">تتحدّث الصفحة تلقائيًا بعد كل مباراة.</p></div>`;
 }
 function fitPoster(){
   document.querySelectorAll('.p-wrap').forEach(w=>{const s=w.querySelector('.p-scale');if(!s)return;
-    const k=Math.min(1,w.clientWidth/540);s.style.transform=`scale(${k})`;w.style.height=(675*k)+'px';});
+    const k=Math.min(1,w.clientWidth/540);s.style.transform=`scale(${k})`;w.style.height=(s.offsetHeight*k)+'px';});
 }
 function fitPosterOld(){
   const w=document.getElementById('pwrap'),s=document.getElementById('pscale');if(!w||!s)return;
@@ -1083,7 +1085,7 @@ root.addEventListener('click',async ev=>{
     const nums=rows.map(r=>r.n);if(new Set(nums).size!==nums.length){toast('يوجد رقم مكرر في التشكيلة','err');return}
     S.lineups[ui.sqEdit]=rows.sort((a,b)=>a.n-b.n);ui.sqEdit=null;ui.sqDraft=null;render();await save('حُفظت التشكيلة');return}
   if(act==='png'){await exportPng();return}
-  if(act==='fanpng'){await exportPng('poster-'+b.dataset.k,b.dataset.k);return}
+  if(act==='fanpng'){const k=b.dataset.k;if(k.startsWith('lineup-')){ui.pteam=k.slice(7);await exportPng('poster-'+k,'lineups');return}await exportPng('poster-'+k,k);return}
   if(act==='sday'){ui.sday=+b.dataset.k;ui.sdayPicked=true;render();return}
   if(act==='rday'){ui.rday=+b.dataset.k;ui.rfull=false;render();return}
   if(act==='rmore'){ui.rfull=true;render();return}
