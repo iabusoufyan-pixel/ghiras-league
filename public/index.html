@@ -9,20 +9,25 @@
 <meta property="og:description" content="الترتيب والنتائج والهدافون والتشكيلات والتحديات">
 <meta name="theme-color" content="#26380d">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2326380d'/%3E%3Cpath d='M22 12v40' stroke='%23f2f5e8' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M24 13l20 7-20 7z' fill='%23e2c12b'/%3E%3C/svg%3E">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" href="/fonts/readex-700.woff" as="font" type="font/woff" crossorigin><link rel="preload" href="/fonts/plex-400.woff" as="font" type="font/woff" crossorigin>
 <style>
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 body{margin:0}img{max-width:100%}[hidden]{display:none!important}
 
-@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap');
+@font-face{font-family:'Readex Pro';src:url(/fonts/readex-500.woff) format('woff');font-weight:500;font-display:swap}
+@font-face{font-family:'Readex Pro';src:url(/fonts/readex-700.woff) format('woff');font-weight:600 900;font-display:swap}
+@font-face{font-family:'IBM Plex Sans Arabic';src:url(/fonts/plex-400.woff) format('woff');font-weight:400;font-display:swap}
+@font-face{font-family:'IBM Plex Sans Arabic';src:url(/fonts/plex-500.woff) format('woff');font-weight:500;font-display:swap}
+@font-face{font-family:'IBM Plex Sans Arabic';src:url(/fonts/plex-600.woff) format('woff');font-weight:600;font-display:swap}
+@font-face{font-family:'IBM Plex Sans Arabic';src:url(/fonts/plex-700.woff) format('woff');font-weight:700 900;font-display:swap}
 /* Layout: a pitch-green scoreboard header over a quiet chalk-line workspace; tabs switch between the league's records and its print-ready posts */
 :root{
   --bg:#eef1ee;--surface:#ffffff;--ink:#262a26;--muted:#7a847c;--line:#e6eae6;--soft:#f5f7f5;
   --pitch:#262a26;--pitch-ink:#ffffff;--flag:#3d8b3d;--flag-bright:#3d8b3d;
   --accent:#3d8b3d;--accent-soft:#ebf4e9;--lime:#a9c23f;--score:#262a26;
   --good:#3d8b3d;--bad:#b2342c;--warn:#a8621a;
-  --display:'Tajawal',system-ui,sans-serif;
-  --body:'Tajawal',system-ui,sans-serif;
+  --display:'Readex Pro','IBM Plex Sans Arabic',system-ui,sans-serif;
+  --body:'IBM Plex Sans Arabic',system-ui,sans-serif;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#121512;--surface:#1b201b;--ink:#e8ece7;--muted:#98a198;--line:#2a312a;--soft:#222822;
@@ -102,8 +107,8 @@ tr:last-child td{border-bottom:0}
 .pm-c{display:inline-block;background:#e2c12b;color:#22330b;border-radius:3px;padding:0 4px;font-size:10px;font-weight:800;text-shadow:none}
 .sq-off{margin:0}
 .pl-field{position:relative;flex:1;margin-block:-4px 8px}
-.plm .pm-n{width:44px;height:44px;font-size:21px;font-family:'Tajawal',sans-serif}
-.plm .pm-p{font-family:'Tajawal',sans-serif;font-size:19px;font-weight:700}
+.plm .pm-n{width:44px;height:44px;font-size:21px;font-family:var(--display)}
+.plm .pm-p{font-family:var(--display);font-size:19px;font-weight:700}
 .plm .pm-c{font-size:13px;padding:0 5px}
 .pl-off{font-size:14px;color:rgba(244,246,236,.8);text-align:center;margin-bottom:8px}
 .ch-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
@@ -117,8 +122,8 @@ tr:last-child td{border-bottom:0}
 .ch-add{cursor:pointer;border-style:dashed;color:var(--muted);font-weight:600;place-items:center;min-height:90px;font-size:15px}
 .ch-totals{display:flex;flex-wrap:wrap;gap:8px 22px;padding:12px 14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;font-weight:600}
 .pc-row{display:flex;justify-content:space-between;align-items:center;padding:5px 16px;background:rgba(10,18,2,.38);border-radius:8px;margin-bottom:6px}
-.pc-t{font-family:'Tajawal',sans-serif;font-weight:700;font-size:20px}
-.pc-r{font-family:'Tajawal',sans-serif;font-weight:800;font-size:22px;color:#e2c12b}
+.pc-t{font-family:var(--display);font-weight:700;font-size:20px}
+.pc-r{font-family:var(--display);font-weight:800;font-size:22px;color:#e2c12b}
 .pc-r small{font-size:13px;color:rgba(244,246,236,.75)}
 .float{font-size:12px;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:0 8px;margin-inline-start:6px}
 
@@ -212,7 +217,7 @@ body{background:var(--bg)}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
 
 /* poster: fixed light look, it is the published image */
-.poster{width:540px;height:675px;position:relative;background:#ffffff;color:#262a26;font-family:'Tajawal',sans-serif;overflow:hidden;direction:rtl}
+.poster{width:540px;height:675px;position:relative;background:#ffffff;color:#262a26;font-family:var(--body);overflow:hidden;direction:rtl}
 
 .po-in{position:absolute;inset:0;padding:30px 34px 22px;display:flex;flex-direction:column;z-index:1}
 .po-head{display:flex;justify-content:space-between;align-items:center}
@@ -264,13 +269,19 @@ body{background:var(--bg)}
 .ps-g{font-weight:900;font-size:26px;text-align:end}
 .pc-row{display:flex;justify-content:space-between;align-items:center;padding:8px 16px;border-radius:12px;margin-bottom:6px;background:transparent}
 .pc-row:nth-child(odd){background:#f5f7f5}
-.pc-t{font-family:'Tajawal',sans-serif;font-weight:800;font-size:20px;color:#262a26}
-.pc-r{font-family:'Tajawal',sans-serif;font-weight:900;font-size:22px;color:#3d8b3d}
+.pc-t{font-family:var(--display);font-weight:800;font-size:20px;color:#262a26}
+.pc-r{font-family:var(--display);font-weight:900;font-size:22px;color:#3d8b3d}
 .pc-r small{font-size:13px;color:#7a847c}
 .pl-field{border-radius:16px;background-size:cover;background-position:center;margin:0 0 10px;flex:1;color:#fff}
 .pl-off{color:#7a847c}
 
 
+
+
+/* typography: Readex Pro for titles, names and numbers; IBM Plex for running text */
+h1,h2,h3,h4,.brand h1,.hpill,.tab,.pts,.score,.cr,.rank,.sc-name,.sc-g,.mbig,.ch-title,.ch-reward,.fan-facts b,.fan-h h2,.fan-nav a,.fan-chips button,.chip,
+.po-brand,.po-title,.po-pill,.pt-head,.pt-row,.pt-team,.pt-pts,.pt-crest,.pr-line,.pr-score,.pf-vs,.ps-hero strong,.ps-hg,.ps-rank,.ps-name,.ps-g,.pm-n,.pm-p,.rp-body .rp-h{font-family:var(--display)}
+.rp-body b{font-family:var(--body)}
 
 /* round report */
 .rp-body{position:relative;max-height:330px;overflow:hidden;padding:4px 6px 0;font-size:15.5px;line-height:1.85}
@@ -685,7 +696,7 @@ function vReports(){
 }
 function fanView(){
   const ld=lastDay(),nd=nextRound(),sc=scorers(),lead=table()[0];
-  if(!ui.sday||ui.sday>Math.max(1,ld))ui.sday=Math.max(1,ld);
+  if(!ui.sdayPicked||!ui.sday||ui.sday>Math.max(1,ld))ui.sday=Math.max(1,ld);
   const keep=ui.pday;
   const head=`<header class="fan-top"><span class="brand"><img src="${LOGO}" alt="شعار غراس" width="52" height="50"><span><h1>دوري غراس</h1><small>تنظيم فريق غراس التطوعي</small></span></span><span class="hpill">${ld?dayLabel(ld):'قبل الانطلاق'}</span></header>
   ${ld?`<div class="fan-facts"><div><small>المتصدر</small><b>${esc(T(lead.id).name)}</b><span class="num">${ar(lead.pts)} نقاط</span></div><div><small>الهداف</small><b>${esc(sc[0]?sc[0].name:'—')}</b><span class="num">${ar(sc[0]?sc[0].g:0)} أهداف</span></div><div><small>الجولة القادمة</small><b>${nd?dayLabel(nd).replace('الجولة ',''):'—'}</b><span>${nd&&S.dayDates[nd]?esc(S.dayDates[nd]):'من ٦ جولات'}</span></div></div>`:''}
@@ -845,7 +856,7 @@ root.addEventListener('click',async ev=>{
     S.lineups[ui.sqEdit]=rows.sort((a,b)=>a.n-b.n);ui.sqEdit=null;ui.sqDraft=null;render();await save('حُفظت التشكيلة');return}
   if(act==='png'){await exportPng();return}
   if(act==='fanpng'){await exportPng('poster-'+b.dataset.k,b.dataset.k);return}
-  if(act==='sday'){ui.sday=+b.dataset.k;render();return}
+  if(act==='sday'){ui.sday=+b.dataset.k;ui.sdayPicked=true;render();return}
   if(act==='rday'){ui.rday=+b.dataset.k;ui.rfull=false;render();return}
   if(act==='rmore'){ui.rfull=true;render();return}
   if(act==='rcopy'){const t=(S.reports[ui.rday]||{}).text||'';try{await navigator.clipboard.writeText(t);toast('نُسخ التقرير، الصقه في الواتساب')}catch(e){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('نُسخ التقرير، الصقه في الواتساب')}catch(_){toast('تعذّر النسخ، حدّد النص وانسخه يدويًا','err')}ta.remove()}return}
