@@ -434,7 +434,7 @@ const uid=()=>Math.random().toString(36).slice(2,9);
 const root=document.getElementById('root');
 
 function ensure(){
-  S.dayDates=S.dayDates||{};S.transfers=S.transfers||[];S.awards=S.awards||[];S.challenges=S.challenges||[];S.floaters=S.floaters||[];S.lineups=S.lineups||{};S.matches=S.matches||[];S.reports=S.reports||{};
+  S.dayDates=S.dayDates||{};S.transfers=S.transfers||[];S.awards=S.awards||[];S.challenges=S.challenges||[];S.floaters=S.floaters||[];S.lineups=S.lineups||{};S.matches=S.matches||[];S.reports=S.reports||{};S.bonuses=S.bonuses||[];
   if(!S.loanLog){S.loanLog=[];S.matches.forEach(m=>{(m.loans||[]).forEach(l=>S.loanLog.push({id:uid(),day:m.day,slot:m.slot,p:l.p,from:l.from,to:l.to,fee:LOAN_FEE,payTo:'lender',note:''}));delete m.loans})}
 if(!S.fixtures||!S.fixtures.length){
     const X=[['asood','suqoor'],['liyooth','fuhood']],Y=[['asood','fuhood'],['suqoor','liyooth']],Z=[['asood','liyooth'],['suqoor','fuhood']];
@@ -487,6 +487,7 @@ function homeTeam(e){const k=Object.keys(e.by).filter(k=>!k.endsWith('|loan'));r
 function balances(){
   const t=table();const b={};
   t.forEach(r=>b[r.id]={prize:r.prize,inc:0,paid:0});
+  (S.bonuses||[]).forEach(a=>{if(b[a.team])b[a.team].bonus=(b[a.team].bonus||0)+(+a.amount||0)});
   (S.awards||[]).forEach(a=>{if(b[a.team])b[a.team].ch=(b[a.team].ch||0)+(+a.amount||0)});
   let committee=0;
   S.transfers.forEach(x=>{const a=+x.amount||0;if(b[x.to])b[x.to].paid+=a;if(b[x.from])b[x.from].inc+=a/2;committee+=a/2});
@@ -579,9 +580,10 @@ function vScorers(){
 }
 function vMoney(){
   const {b,committee,loanCommittee}=balances();
-  const cards=table().map(r=>{const x=b[r.id];const bal=x.prize+(x.ch||0)+x.inc-x.paid+(x.loan||0);
+  const cards=table().map(r=>{const x=b[r.id];const bal=x.prize+(x.ch||0)+(x.bonus||0)+x.inc-x.paid+(x.loan||0);
     return `<div class="mcard"><div>${teamChip(r.id)}</div><div class="mbig num">${money(bal)} <span class="note">ريال</span></div>
     <div class="mline"><span>المكافآت</span><span class="num">${money(x.prize)}</span></div>
+    ${x.bonus?`<div class="mline"><span>إكرامية اللجنة</span><span class="num">${money(x.bonus)}</span></div>`:''}
     <div class="mline"><span>التحديات</span><span class="num">${money(x.ch||0)}</span></div>
     <div class="mline"><span>نصيبه من المزاد</span><span class="num">${money(x.inc)}</span></div>
     <div class="mline"><span>دفعه في المزاد</span><span class="num">${x.paid?'−'+money(x.paid):'٠'}</span></div>
@@ -613,8 +615,16 @@ function vMoney(){
     <label class="field">ملاحظة<input id="lf-note" type="text" placeholder="اختياري، مثل البديل المتفق عليه"></label>
     <button class="btn primary" data-act="ladd2">تسجيل الإعارة</button></div>
     <p class="note">تُخصم الرسوم من رصيد الفريق المستعير تلقائيًا. والإعارة لمباراة واحدة، ويُعوَّض الفريق المعير ببديل حسب اتفاق الكابتنين.</p>`:'';
+  const bon=S.bonuses||[];
+  const btab=bon.length?`<div class="panel scroll"><table><thead><tr><th>الجولة</th><th>الفريق</th><th>المبلغ</th><th class="team">السبب</th>${canWrite?'<th></th>':''}</tr></thead><tbody>${bon.map(x=>`<tr><td class="num">${ar(x.day||'')}</td><td>${teamChip(x.team)}</td><td class="num">${money(x.amount)}</td><td class="team">${esc(x.note||'')}</td>${canWrite?`<td>${ui.confirm==='b'+x.id?`<button class="btn danger" data-act="bdel" data-id="${x.id}">تأكيد</button>`:`<button class="btn link" data-act="baskdel" data-id="${x.id}" aria-label="حذف الإكرامية">✕</button>`}</td>`:''}</tr>`).join('')}</tbody></table></div>`:`<div class="panel empty">لا توجد إكراميات بعد.</div>`;
+  const bform=canWrite?`<div class="panel form-grid">
+    <label class="field">الفريق<select id="bf-team">${teamOpts()}</select></label>
+    <label class="field">المبلغ (ريال)<input id="bf-amount" type="number" step="50" inputmode="numeric"></label>
+    <label class="field">السبب<input id="bf-note" type="text" placeholder="مثل: إكرامية قبل المزاد"></label>
+    <button class="btn primary" data-act="badd">إضافة الإكرامية</button></div>
+    <p class="note">تُضاف الإكرامية إلى رصيد الفريق مباشرة. ويمكن إدخال مبلغ سالب للخصم.</p>`:'';
   return `<div class="panel money">${cards}</div><p class="note">حصة اللجنة: من المزاد <span class="num">${money(committee)}</span> ريال، ومن الإعارات <span class="num">${money(loanCommittee)}</span> ريال.</p>
-  <h3 class="section-h">صفقات المزاد الصامت</h3>${tr}${form}<h3 class="section-h">سجل الإعارات</h3>${ltab}${lform}`;
+  <h3 class="section-h">صفقات المزاد الصامت</h3>${tr}${form}<h3 class="section-h">سجل الإعارات</h3>${ltab}${lform}<h3 class="section-h">إكراميات اللجنة</h3>${btab}${bform}`;
 }
 
 /* ---------- challenges ---------- */
@@ -972,6 +982,11 @@ root.addEventListener('click',async ev=>{
     if(rec.from===rec.to){toast('اختر فريقين مختلفين','err');return}
     if(rec.to!==ta&&rec.to!==tb){toast('الفريق المستعير ليس طرفًا في هذه المباراة','err');return}
     S.loanLog.push(rec);render();await save('سُجّلت الإعارة وخُصمت رسومها');return}
+  if(act==='badd'){const g=id=>document.getElementById(id).value;const amount=+g('bf-amount');
+    if(!amount){toast('اكتب مبلغ الإكرامية','err');return}
+    S.bonuses.push({id:uid(),team:g('bf-team'),amount,note:g('bf-note').trim(),day:Math.max(1,lastDay())});render();await save('أُضيفت الإكرامية');return}
+  if(act==='baskdel'){ui.confirm='b'+b.dataset.id;render();return}
+  if(act==='bdel'){S.bonuses=S.bonuses.filter(x=>x.id!==b.dataset.id);ui.confirm=null;render();await save('حُذفت الإكرامية');return}
   if(act==='laskdel'){ui.confirm='l'+b.dataset.id;render();return}
   if(act==='ldel'){S.loanLog=S.loanLog.filter(x=>x.id!==b.dataset.id);ui.confirm=null;render();await save('حُذفت الإعارة');return}
   if(act==='taskdel'){ui.confirm='t'+b.dataset.id;render();return}

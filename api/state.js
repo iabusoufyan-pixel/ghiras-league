@@ -50,9 +50,9 @@ function clientIp(req) {
   return (Array.isArray(f) ? f[0] : f || "").split(",")[0].trim() || "unknown";
 }
 
-// ما يراه الطلاب: كل شيء عدا صفقات المزاد ومكافآت التحديات ورسوم الإعارات
+// ما يراه الطلاب: كل شيء عدا صفقات المزاد ومكافآت التحديات والإكراميات ورسوم الإعارات
 function publicView(d) {
-  const { transfers, awards, loanLog, ...rest } = d || {};
+  const { transfers, awards, loanLog, bonuses, ...rest } = d || {};
   // الإعارات تظهر للطلاب بلا رسومها
   rest.loanLog = (loanLog || []).map(({ day, slot, p, from, to }) => ({ day, slot, p, from, to }));
   return rest;
