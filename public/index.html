@@ -283,6 +283,73 @@ h1,h2,h3,h4,.brand h1,.hpill,.tab,.pts,.score,.cr,.rank,.sc-name,.sc-g,.mbig,.ch
 .po-brand,.po-title,.po-pill,.pt-head,.pt-row,.pt-team,.pt-pts,.pt-crest,.pr-line,.pr-score,.pf-vs,.ps-hero strong,.ps-hg,.ps-rank,.ps-name,.ps-g,.pm-n,.pm-p,.rp-body .rp-h{font-family:var(--display)}
 .rp-body b{font-family:var(--body)}
 
+
+/* newspaper — a fixed newsprint look, the same in light and dark */
+.np-wrap{position:relative;max-height:560px;overflow:hidden;border-radius:12px}
+.np-wrap.open{max-height:none}
+.np-wrap:not(.open)::after{content:"";position:absolute;inset-inline:0;bottom:0;height:120px;background:linear-gradient(rgba(251,250,246,0),#fbfaf6)}
+.np{background:#fbfaf6;color:#1d1f1d;padding:16px 16px 14px;font-family:var(--body);font-size:15px;line-height:1.8;border:1px solid #e3e1d8;border-radius:12px}
+.np p{margin:0 0 6px}
+.np b{font-weight:700;color:#111}
+.np-mast{text-align:center;border-top:3px double #1d1f1d;border-bottom:3px double #1d1f1d;padding:6px 0}
+.np-mast-row{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;color:#5c605b;font-weight:600}
+.np-name{display:flex;align-items:center;justify-content:center;gap:10px;font-family:var(--display);font-weight:700;font-size:clamp(30px,9vw,44px);line-height:1.2;letter-spacing:-.01em;margin:2px 0}
+.np-name img{width:44px;height:42px;object-fit:contain}
+.np-break{margin-top:12px;background:#1d1f1d;color:#fff;padding:12px 14px;position:relative}
+.np-break b{color:#fff}
+.np-break-tag{display:inline-block;background:#c0392b;color:#fff;font-family:var(--display);font-weight:700;font-size:12px;padding:2px 10px;margin-bottom:4px}
+.np-break h4{margin:0 0 4px;font-family:var(--display);font-weight:700;font-size:20px;line-height:1.35}
+.np-break p{color:#e9ebe8;font-size:14.5px}
+.np-front{padding:14px 0 12px;border-bottom:1px solid #1d1f1d}
+.np-kicker{font-family:var(--display);font-weight:700;font-size:12.5px;color:#3d8b3d}
+.np-head{font-family:var(--display);font-weight:700;font-size:clamp(26px,7.5vw,38px);line-height:1.2;margin:2px 0 8px;letter-spacing:-.01em;text-wrap:balance}
+.np-lede p{font-size:16.5px;line-height:1.85;color:#2a2c2a}
+.np-lede p:first-child::first-letter{font-family:var(--display);font-weight:700;color:#3d8b3d}
+.np-grid{display:grid;gap:14px;padding-top:12px}
+.np-main,.np-side{min-width:0;display:grid;gap:12px;align-content:start}
+.np-cols{display:grid;gap:12px}
+.np-art{padding-bottom:10px;border-bottom:1px solid #d9d7cd}
+.np-art:last-child{border-bottom:0}
+.np-art-h{font-family:var(--display);font-weight:700;font-size:19px;line-height:1.35;margin:1px 0 4px}
+.np-need{font-size:14px;color:#3a5a3a;background:#eef4ea;border-inline-start:3px solid #3d8b3d;padding:4px 8px;margin-top:4px!important}
+.np-box{border:1px solid #1d1f1d;background:#fff}
+.np-box h4{margin:0;background:#1d1f1d;color:#fff;font-family:var(--display);font-weight:700;font-size:14px;padding:6px 10px}
+.np-box-b{padding:8px 10px;font-size:14px}
+.np-box ul{margin:0;padding-inline-start:18px}
+.np-box li{margin-bottom:4px}
+.np-tbl{width:100%;min-width:0;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.np-tbl td{padding:5px 4px;border-bottom:1px solid #ecebe4;text-align:center;font-size:14px}
+.np-tbl td.n{text-align:start;font-family:var(--display);font-weight:700}
+.np-tbl td.p{font-family:var(--display);font-weight:700;font-size:16px}
+.np-tbl tr.top td.p{color:#3d8b3d}
+.np-tbl tr:last-child td{border-bottom:0}
+.np-dark{border-color:#3d8b3d}
+.np-dark h4{background:#3d8b3d}
+.np-stars{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.np-stars li{display:grid;gap:1px}
+.np-stars b{font-family:var(--display);font-size:15px}
+.np-stars span{font-size:13.5px;color:#3a3d3a;line-height:1.6}
+.np-quote{margin:0;padding:12px 4px;border-top:2px solid #1d1f1d;border-bottom:2px solid #1d1f1d;text-align:center}
+.np-quote p{font-family:var(--display);font-weight:500;font-size:18px;line-height:1.6;margin:0}
+.np-quote p::before{content:"«";color:#3d8b3d;font-weight:700}
+.np-quote p::after{content:"»";color:#3d8b3d;font-weight:700}
+.np-quote cite{display:block;font-style:normal;font-size:12.5px;color:#5c605b;margin-top:6px}
+.np-bottom{display:grid;gap:12px;padding-top:12px;margin-top:12px;border-top:1px solid #1d1f1d}
+.np-poll{background:#eef4ea;border-color:#3d8b3d}
+.np-poll h4{background:#3d8b3d}
+.np-foot{margin-top:12px;padding-top:8px;border-top:3px double #1d1f1d;text-align:center;font-size:11.5px;color:#5c605b;font-weight:600}
+.np{container-type:inline-size}
+@container (min-width:500px){
+  .np-cols{grid-template-columns:1fr 1fr;column-gap:18px}
+  .np-cols .np-art:nth-child(even){border-inline-start:1px solid #d9d7cd;padding-inline-start:18px}
+  .np-cols .np-art:nth-last-child(-n+2){border-bottom:0}
+  .np-bottom{grid-template-columns:1fr 1fr}
+}
+@container (min-width:760px){
+  .np-grid{grid-template-columns:1fr 230px}
+  .np-side{border-inline-start:1px solid #d9d7cd;padding-inline-start:14px}
+}
+
 /* round report */
 .rp-body{position:relative;max-height:330px;overflow:hidden;padding:4px 6px 0;font-size:15.5px;line-height:1.85}
 .rp-body.open{max-height:none}
@@ -677,14 +744,85 @@ function fmtReport(t){
     return `<p>${h}</p>`;
   }).join('');
 }
+/* ---------- newspaper layout for the round report ---------- */
+const EMO=/^[\p{Extended_Pictographic}\uFE0F\u200d\u2B05\u27A1\s]+/u;
+const clean=t=>String(t).replace(EMO,'').trim();
+const inl=t=>esc(t).replace(/\*([^*\n]+)\*/g,'<b>$1</b>');
+const unstar=t=>String(t).replace(/^\*|\*$/g,'').replace(/\*/g,'').trim();
+function parseReport(text){
+  const blocks=[];let cur=[];
+  String(text||'').split('\n').forEach(l=>{const L=l.trim();if(/^[━─_\-=]{4,}$/.test(L)){blocks.push(cur);cur=[]}else cur.push(L)});blocks.push(cur);
+  const arts=[];
+  blocks.forEach(b=>{let g=[];const flush=()=>{if(g.length)arts.push(g);g=[]};b.forEach(L=>{if(!L)flush();else g.push(L)});flush()});
+  return arts.map(lines=>{
+    const h=clean(unstar(lines[0]));const body=lines.slice(1);const raw=lines[0];
+    let type='plain';
+    if(/التقرير الفني/.test(h))type='mast';
+    else if(/^📢/.test(raw))type='breaking';
+    else if(/^الترتيب$/.test(h))type='table';
+    else if(/عنوان الجولة/.test(h))type='lead';
+    else if(/^👑/.test(raw))type='quote';
+    else if(/^تنظيم/.test(h))type='foot';
+    else if(/نجوم/.test(h))type='stars';
+    else if(/أرقام/.test(h))type='numbers';
+    else if(/توقّع|توقع/.test(h))type='poll';
+    else if(/^🔜/.test(raw)||/^الجولة\s/.test(h))type='fixtures';
+    else if(h.includes('|'))type='team';
+    return {type,h,body,raw,lines};
+  });
+}
+function npBody(lines){
+  let out='',list=[];
+  const flushList=()=>{if(list.length){out+=`<ul>${list.map(x=>`<li>${inl(x)}</li>`).join('')}</ul>`;list=[]}};
+  lines.forEach(L=>{
+    if(/^[•\-]\s*/.test(L)){list.push(L.replace(/^[•\-]\s*/,''));return}
+    flushList();
+    if(/^⚡/.test(L)){out+=`<p class="np-need">${inl(clean(L))}</p>`;return}
+    out+=`<p>${inl(clean(L))}</p>`;
+  });
+  flushList();return out;
+}
+function npBox(title,html,cls){return `<aside class="np-box ${cls||''}"><h4>${esc(title)}</h4><div class="np-box-b">${html}</div></aside>`}
+function newspaper(text,d){
+  const A=parseReport(text);
+  const lead=A.find(a=>a.type==='lead');
+  const teams=A.filter(a=>a.type==='team');
+  const stars=A.find(a=>a.type==='stars');
+  const nums=A.find(a=>a.type==='numbers');
+  const fx=A.find(a=>a.type==='fixtures');
+  const poll=A.find(a=>a.type==='poll');
+  const quote=A.find(a=>a.type==='quote');
+  const plain=A.filter(a=>a.type==='plain');
+  const brk=A.filter(a=>a.type==='breaking');
+  const t=table(d);
+  const leadTitle=lead?lead.h.replace(/^عنوان الجولة\s*[:：]\s*/,''):'تقرير '+dayLabel(d);
+  const mast=`<header class="np-mast"><div class="np-mast-row"><span>العدد ${ar(d)}</span><span>${S.dayDates[d]?esc(S.dayDates[d]):''}</span></div>
+    <div class="np-name"><img src="${LOGO}" alt="">جريدة غراس</div>
+    <div class="np-mast-row"><span>تصدر بعد كل جولة</span><span>تنظيم فريق غراس التطوعي</span></div></header>`;
+  const front=`<div class="np-front"><div class="np-kicker">${dayLabel(d)}</div><h3 class="np-head">${inl(leadTitle)}</h3>${lead?`<div class="np-lede">${npBody(lead.body)}</div>`:''}</div>`;
+  const tbl=npBox('الترتيب بعد '+dayLabel(d),`<table class="np-tbl"><tbody>${t.map((r,i)=>`<tr${i===0?' class="top"':''}><td>${ar(i+1)}</td><td class="n">${esc(T(r.id).name)}</td><td>${signed(r.gf-r.ga)}</td><td class="p">${ar(r.pts)}</td></tr>`).join('')}</tbody></table>`,'np-standings');
+  const teamArts=teams.map(a=>{const [k,...rest]=a.h.split('|');return `<article class="np-art"><div class="np-kicker">${esc(k.trim())}</div><h4 class="np-art-h">${esc(rest.join('|').trim())}</h4>${npBody(a.body)}</article>`}).join('');
+  const starsHtml=stars?npBox(stars.h,`<ol class="np-stars">${stars.body.map(L=>{const m=clean(L).match(/^\*([^*]+)\*\s*(.*)$/);return m?`<li><b>${esc(m[1].replace(/[:：]\s*$/,''))}</b><span>${inl(m[2])}</span></li>`:`<li>${inl(clean(L))}</li>`}).join('')}</ol>`,'np-dark'):'';
+  const plainArts=plain.map(a=>`<article class="np-art np-wide"><h4 class="np-art-h">${inl(a.h)}</h4>${npBody(a.body)}</article>`).join('');
+  const quoteHtml=quote?`<blockquote class="np-quote"><p>${inl(clean(quote.lines.join(' ')).replace(/^\*?تحية خاصة لأبي راضي:?\*?\s*/,''))}</p><cite>${esc(unstar(clean(quote.raw)).split(/[:：]/)[0])}</cite></blockquote>`:'';
+  const numsHtml=nums?npBox(nums.h,npBody(nums.body),'np-nums'):'';
+  const fxHtml=fx?npBox(fx.h,npBody(fx.body),''):'';
+  const pollHtml=poll?npBox(poll.h,npBody(poll.body),'np-poll'):'';
+  const brkHtml=brk.map(a=>`<section class="np-break"><div class="np-break-tag">عاجل</div><h4>${inl(a.h.replace(/^عاجل\s*[:：]\s*/,''))}</h4>${npBody(a.body.map(L=>L.replace(/^💡\s*/,'')))}</section>`).join('');
+  return `<div class="np">${mast}${brkHtml}${front}
+    <div class="np-grid"><div class="np-main"><div class="np-cols">${teamArts}</div>${plainArts}${quoteHtml}</div>
+    <div class="np-side">${tbl}${starsHtml}${numsHtml}</div></div>
+    <div class="np-bottom">${fxHtml}${pollHtml}</div>
+    <footer class="np-foot">جريدة غراس · ${dayLabel(d)} · تنظيم فريق غراس التطوعي</footer></div>`;
+}
 function reportCard(){
   const rr=reportRounds();if(!rr.length)return '';
   if(!ui.rday||!rr.includes(ui.rday))ui.rday=rr[rr.length-1];
   const r=S.reports[ui.rday];
   const chips=rr.length>1?`<div class="fan-chips">${rr.map(d=>`<button data-act="rday" data-k="${d}" aria-pressed="${d===ui.rday}">${dayLabel(d).replace('الجولة ','')}</button>`).join('')}</div>`:'';
-  return `<section class="fan-sec rp" id="sec-report"><div class="fan-h"><h2>تقرير ${dayLabel(ui.rday)}</h2><button class="btn share" data-act="rcopy"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>نسخ للواتساب</button></div>${chips}
-  <div class="rp-body${ui.rfull?' open':''}" id="rp-body">${fmtReport(r.text)}</div>
-  ${ui.rfull?'':`<button class="rp-more" data-act="rmore">اقرأ التقرير كاملًا</button>`}</section>`;
+  return `<section class="fan-sec rp" id="sec-report"><div class="fan-h"><h2>جريدة الجولة</h2><button class="btn share" data-act="rcopy"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>نسخ للواتساب</button></div>${chips}
+  <div class="np-wrap${ui.rfull?' open':''}">${newspaper(r.text,ui.rday)}</div>
+  ${ui.rfull?'':`<button class="rp-more" data-act="rmore">اقرأ العدد كاملًا</button>`}</section>`;
 }
 function vReports(){
   const d=ui.redit||Math.max(1,lastDay());const r=(S.reports||{})[d]||{text:''};
