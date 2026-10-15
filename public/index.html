@@ -353,6 +353,9 @@ h1,h2,h3,h4,.brand h1,.hpill,.tab,.pts,.score,.cr,.rank,.sc-name,.sc-g,.mbig,.ch
   .np-side{border-inline-start:1px solid #d9d7cd;padding-inline-start:14px}
 }
 
+
+.cat{font-style:normal;display:inline-grid;place-items:center;min-width:17px;height:17px;padding:0 3px;border-radius:5px;font-size:10.5px;font-weight:700;margin-inline-start:4px;vertical-align:1px;font-family:var(--display);text-shadow:none}
+.cat-a{background:#3d8b3d;color:#fff}.cat-b{background:#a9c23f;color:#1d2a10}.cat-c{background:#e6eae6;color:#4a514a}
 /* round report */
 .rp-body{position:relative;max-height:330px;overflow:hidden;padding:4px 6px 0;font-size:15.5px;line-height:1.85}
 .rp-body.open{max-height:none}
@@ -465,6 +468,10 @@ function table(upTo=99){
   return Object.values(r).sort((x,y)=>y.pts-x.pts||(y.gf-y.ga)-(x.gf-x.ga)||y.gf-x.gf||S.teams.findIndex(t=>t.id===x.id)-S.teams.findIndex(t=>t.id===y.id));
 }
 const isFloat=p=>(S.floaters||[]).includes(String(p).trim());
+/* player category (أ / ب / ج): exact name, or a short name that matches exactly one full name */
+function catOf(p){const C=S.categories||{};p=String(p||'').trim();if(!p)return '';if(C[p])return C[p];
+  const hits=Object.keys(C).filter(f=>f.split(' ').includes(p));return hits.length===1?C[hits[0]]:''}
+const catChip=p=>{const c=catOf(p);return c?`<i class="cat cat-${c==='أ'?'a':c==='ب'?'b':'c'}" title="الفئة ${c}">${c}</i>`:''};
 const slotLoans=(d,sl)=>(S.loanLog||[]).filter(l=>l.day===d&&l.slot===sl);
 const isLoan=(m,p,t)=>slotLoans(m.day,m.slot).some(l=>l.p.trim()===p.trim()&&l.to===t);
 function scorers(upTo=99){
@@ -581,7 +588,7 @@ function vMoney(){
     <div class="mline"><span>الإعارات</span><span class="num">${x.loan?(x.loan<0?'−':'+')+money(Math.abs(x.loan)):'٠'}</span></div></div>`}).join('');
   const tr=S.transfers.length?`<div class="panel scroll"><table><thead><tr><th>الجولة</th><th class="team">اللاعب</th><th>الفئة</th><th>من</th><th>إلى</th><th>المبلغ</th><th>للفريق البائع</th><th>للجنة</th>${canWrite?'<th></th>':''}</tr></thead><tbody>${S.transfers.map(x=>`<tr><td class="num">${ar(x.day)}</td><td class="team">${esc(x.player)}</td><td>${esc(x.cat)}</td><td>${teamChip(x.from)}</td><td>${teamChip(x.to)}</td><td class="num">${money(x.amount)}</td><td class="num">${money(x.amount/2)}</td><td class="num">${money(x.amount/2)}</td>${canWrite?`<td>${ui.confirm==='t'+x.id?`<button class="btn danger" data-act="tdel" data-id="${x.id}">تأكيد</button>`:`<button class="btn link" data-act="taskdel" data-id="${x.id}" aria-label="حذف الصفقة">✕</button>`}</td>`:''}</tr>`).join('')}</tbody></table></div>`:`<div class="panel empty">لا توجد صفقات بعد. تُسجَّل هنا نتيجة كل مزاد صامت بعد إعلانها.</div>`;
   const form=canWrite?`<h3 class="section-h">تسجيل صفقة من المزاد</h3><div class="panel form-grid">
-    <label class="field">اللاعب<input id="tf-player" type="text" list="plist2" placeholder="اسم اللاعب"></label>
+    <label class="field">اللاعب<input id="tf-player" type="text" data-act="tfp" list="plist2" placeholder="اسم اللاعب"></label>
     <label class="field">الفئة<select id="tf-cat"><option>أ</option><option>ب</option><option>ج</option></select></label>
     <label class="field">من فريق<select id="tf-from">${teamOpts()}</select></label>
     <label class="field">إلى فريق (الفائز بالمزاد)<select id="tf-to">${teamOpts('suqoor')}</select></label>
@@ -648,7 +655,7 @@ const lineup=id=>(S.lineups&&S.lineups[id])||[];
 function pitchMarkers(id,cls,stretch){
   const rows=lineup(id),on=rows.filter(r=>POS[r.n]),off=rows.filter(r=>!POS[r.n]);
   const Y=y=>stretch?((y-11)/77*84+7).toFixed(1):y;
-  return {html:on.map(r=>`<div class="${cls}" style="left:${POS[r.n][0]}%;top:${Y(POS[r.n][1])}%"><span class="pm-n">${ar(r.n)}</span><span class="pm-p">${esc(r.p)}${r.c?' <b class="pm-c">C</b>':''}</span></div>`).join(''),off};
+  return {html:on.map(r=>`<div class="${cls}" style="left:${POS[r.n][0]}%;top:${Y(POS[r.n][1])}%"><span class="pm-n">${ar(r.n)}</span><span class="pm-p">${esc(r.p)}${catChip(r.p)}${r.c?' <b class="pm-c">C</b>':''}</span></div>`).join(''),off};
 }
 function vSquads(){
   return `<div class="squads">${S.teams.map(t=>{
@@ -663,7 +670,7 @@ function vSquads(){
     return `<section class="panel sq"><div class="sq-head">${teamChip(t.id)}${canWrite?`<button class="btn link" data-act="sqedit" data-k="${t.id}">تعديل</button>`:''}</div>
     <div class="mini-pitch" style="background-image:url(${pitch()})">${m.html}</div>
     ${m.off.length?`<div class="sq-off note">أيضًا: ${m.off.map(r=>ar(r.n)+' '+esc(r.p)+(r.c?' (C)':'')).join('، ')}</div>`:''}</section>`}).join('')}</div>
-    <p class="note">C تعني كابتن الفريق. عدّل التشكيلة بعد كل صفقة في المزاد حتى تبقى صحيحة.</p>`;
+    <p class="note">C تعني كابتن الفريق، والحروف الملوّنة بجانب الأسماء هي فئة اللاعب: <i class="cat cat-a">أ</i> <i class="cat cat-b">ب</i> <i class="cat cat-c">ج</i>. عدّل التشكيلة بعد كل صفقة في المزاد حتى تبقى صحيحة.</p>`;
 }
 function pLineup(){
   const id=ui.pteam,t=T(id),m=pitchMarkers(id,'plm',true);
@@ -1016,6 +1023,7 @@ root.addEventListener('input',ev=>{
   if(act==='dga'){dr.ga=el.value;refreshWarn()}else if(act==='dgb'){dr.gb=el.value;refreshWarn()}
   else if(act==='gp')dr.goals[+el.dataset.i].p=el.value;
   else if(act==='lp')dr.loans[+el.dataset.i].p=el.value;
+  else if(act==='tfp'){const c=catOf(el.value),sel=document.getElementById('tf-cat');if(c&&sel)sel.value=c}
   else if(act==='lfee')dr.loans[+el.dataset.i].fee=el.value;
   else if(act==='cfc'){const c=S.challenges.find(x=>x.id===el.value);const am=document.getElementById('af-amount');if(c&&am)am.value=c.reward}
   else if(act==='sqn')ui.sqDraft[+el.dataset.i].n=el.value;
