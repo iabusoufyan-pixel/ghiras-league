@@ -475,11 +475,11 @@ function catOf(p){const C=S.categories||{};p=String(p||'').trim();if(!p)return '
   const hits=Object.keys(C).filter(f=>f.split(' ').includes(p));return hits.length===1?C[hits[0]]:''}
 const catChip=p=>{const c=catOf(p);return c?`<i class="cat cat-${c==='أ'?'a':c==='ب'?'b':'c'}" title="الفئة ${c}">${c}</i>`:''};
 const slotLoans=(d,sl)=>(S.loanLog||[]).filter(l=>l.day===d&&l.slot===sl);
-const isLoan=(m,p,t)=>slotLoans(m.day,m.slot).some(l=>l.p.trim()===p.trim()&&l.to===t);
+const isLoan=(m,p,t)=>slotLoans(m.day,m.slot).some(l=>canon(l.p)===canon(p)&&l.to===t);
 function scorers(upTo=99){
   const map={};
   played(upTo).forEach(m=>(m.goals||[]).forEach(g=>{
-    const k=g.p.trim();if(!k)return;
+    const k=canon(g.p);if(!k)return;
     const e=map[k]||(map[k]={name:k,g:0,by:{}});
     e.g++;const key=g.t+(isLoan(m,k,g.t)?'|loan':'');e.by[key]=(e.by[key]||0)+1;
   }));
@@ -537,7 +537,7 @@ function vTable(){
 }
 function goalsLine(m,side){
   const t=side==='a'?m.a:m.b;
-  const c={};(m.goals||[]).filter(g=>g.t===t).forEach(g=>{const k=g.p.trim();c[k]=(c[k]||0)+1});
+  const c={};(m.goals||[]).filter(g=>g.t===t).forEach(g=>{const k=canon(g.p);c[k]=(c[k]||0)+1});
   return Object.entries(c).map(([p,n])=>esc(p)+(n>1?' ('+ar(n)+')':'')+(isLoan(m,p,t)?' <span class="loan">إعارة</span>':'')).join('، ');
 }
 function vMatches(){
@@ -726,7 +726,7 @@ function pTable(){
 }
 function pResults(){
   const d=ui.pday,ms=played().filter(m=>m.day===d);
-  const sc=(m,t)=>{const c={};(m.goals||[]).filter(g=>g.t===t).forEach(g=>{const k=g.p.trim();c[k]=(c[k]||0)+1});return Object.entries(c).map(([p,n])=>esc(p)+(n>1?' ×'+ar(n):'')).join('، ')};
+  const sc=(m,t)=>{const c={};(m.goals||[]).filter(g=>g.t===t).forEach(g=>{const k=canon(g.p);c[k]=(c[k]||0)+1});return Object.entries(c).map(([p,n])=>esc(p)+(n>1?' ×'+ar(n):'')).join('، ')};
   const body=ms.length?ms.map(m=>`<div class="pr-match"><div class="pr-line"><span class="a${m.ga<m.gb?' lose':''}">${crest(m.a)}${esc(T(m.a).name)}</span><span class="pr-score"><span>${ar(m.ga)}</span><span>${ar(m.gb)}</span></span><span class="b${m.gb<m.ga?' lose':''}">${esc(T(m.b).name)}${crest(m.b)}</span></div>
     <div class="pr-sc"><span>${sc(m,m.a)}</span><span class="b">${sc(m,m.b)}</span></div></div>`).join(''):'<div style="opacity:.7">لا نتائج لهذه الجولة بعد.</div>';
   const g=ms.reduce((t,m)=>t+m.ga+m.gb,0);
@@ -924,6 +924,13 @@ async function load(silent){
 
 /* ---------- نقل اللاعبين بين التشكيلات حسب صفقات المزاد ---------- */
 const nm=v=>String(v||'').replace(/[ً-ْـ]/g,'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/\s+/g,' ').trim();
+// توحيد اسم اللاعب: الاسم المختصر (مثل «اسامة» أو «مشعان») يُردّ إلى الاسم الكامل المعتمد إن لم يحتمل غيره
+function canon(p){p=String(p||'').trim();const k=nm(p);if(!k)return p;const tk=k.split(' ');
+  const pool=[...Object.keys(S.categories||{}),...Object.values(S.lineups||{}).flat().map(r=>r.p),...(S.floaters||[])].map(x=>String(x||'').trim()).filter(Boolean);
+  const hits=pool.filter(x=>{const xt=nm(x).split(' ');return tk.every(t=>xt.includes(t))});if(!hits.length)return p;
+  const mx=Math.max(...hits.map(x=>nm(x).split(' ').length)),top=[...new Set(hits.filter(x=>nm(x).split(' ').length===mx).map(nm))];
+  if(top.length!==1)return p;if(mx===tk.length&&nm(p)===top[0])return hits.find(x=>nm(x)===top[0]&&Object.keys(S.categories||{}).includes(x))||p;
+  return hits.find(x=>nm(x)===top[0])}
 function findRow(team,name){const L=(S.lineups[team]||[]),k=nm(name);if(!k)return null;
   let r=L.find(x=>nm(x.p)===k);if(r)return r;
   const c=L.filter(x=>{const a=nm(x.p);return a&&(k.includes(a)||a.includes(k))});return c.length===1?c[0]:null}
@@ -946,6 +953,9 @@ function revertTransfer(x){if(x.smv){movePlayer(x.smv,x.from,x.to);delete x.smv}
 function syncTransfers(){let ch=false;S.fixes=S.fixes||[];
   if(!S.fixes.includes('yousef-ateeq')){const x=S.transfers.find(t=>nm(t.player).includes(nm('محمد اليوسف'))&&t.from==='liyooth'&&t.to==='fuhood');
     if(x){if(x.swap!=='العتيق'){x.swap='العتيق'}S.fixes.push('yousef-ateeq');ch=true}}
+  // توحيد الأسماء المختصرة في الأهداف والإعارات المسجّلة سابقًا
+  S.matches.forEach(m=>(m.goals||[]).forEach(g=>{const c=canon(g.p);if(c!==g.p){g.p=c;ch=true}}));
+  (S.loanLog||[]).forEach(l=>{const c=canon(l.p);if(c!==l.p){l.p=c;ch=true}});
   S.transfers.forEach(x=>{if(!x.mv||(x.swap||null)!==(x.smv||null)){applyTransfer(x);ch=true}});
   return ch}
 async function login(pin,quiet){
@@ -994,8 +1004,8 @@ root.addEventListener('click',async ev=>{
     else{
       const ga=parseInt(dr.ga,10),gb=parseInt(dr.gb,10);
       if(!(ga>=0&&gb>=0)){toast('اكتب نتيجة الفريقين أولًا','err');return}
-      const rec={id:i>=0?S.matches[i].id:uid(),day:d,slot:s,a:dr.a,b:dr.b,ga,gb,goals:dr.goals.filter(g=>g.p.trim()).map(g=>({p:g.p.trim(),t:g.t}))};
-      S.loanLog=(S.loanLog||[]).filter(l=>!(l.day===d&&l.slot===s)).concat(dr.loans.filter(l=>l.p.trim()).map(l=>({id:l.id||uid(),day:d,slot:s,p:l.p.trim(),from:l.from,to:l.to,fee:+l.fee||0,payTo:l.payTo||'lender',note:l.note||''})));
+      const rec={id:i>=0?S.matches[i].id:uid(),day:d,slot:s,a:dr.a,b:dr.b,ga,gb,goals:dr.goals.filter(g=>g.p.trim()).map(g=>({p:canon(g.p),t:g.t}))};
+      S.loanLog=(S.loanLog||[]).filter(l=>!(l.day===d&&l.slot===s)).concat(dr.loans.filter(l=>l.p.trim()).map(l=>({id:l.id||uid(),day:d,slot:s,p:canon(l.p),from:l.from,to:l.to,fee:+l.fee||0,payTo:l.payTo||'lender',note:l.note||''})));
       if(i>=0)S.matches[i]=rec;else S.matches.push(rec);
     }
     ui.edit=null;ui.draft=null;ui.confirm=null;ui.pday=Math.max(1,lastDay());render();
@@ -1014,7 +1024,7 @@ root.addEventListener('click',async ev=>{
     const g=id=>document.getElementById(id).value;
     const day=+g('lf-day'),slot=+g('lf-slot'),f=S.fixtures.find(x=>x.day===day&&x.slot===slot),m=matchAt(day,slot);
     const ta=m?m.a:f&&f.a,tb=m?m.b:f&&f.b;
-    const rec={id:uid(),day,slot,p:g('lf-player').trim(),from:g('lf-from'),to:g('lf-to'),fee:+g('lf-fee')||0,payTo:g('lf-payto'),note:g('lf-note').trim()};
+    const rec={id:uid(),day,slot,p:canon(g('lf-player')),from:g('lf-from'),to:g('lf-to'),fee:+g('lf-fee')||0,payTo:g('lf-payto'),note:g('lf-note').trim()};
     if(!rec.p){toast('اكتب اسم اللاعب المعار','err');return}
     if(rec.from===rec.to){toast('اختر فريقين مختلفين','err');return}
     if(rec.to!==ta&&rec.to!==tb){toast('الفريق المستعير ليس طرفًا في هذه المباراة','err');return}
