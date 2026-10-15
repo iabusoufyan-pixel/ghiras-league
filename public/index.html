@@ -271,6 +271,18 @@ body{background:var(--bg)}
 .pl-off{color:#7a847c}
 
 
+
+/* round report */
+.rp-body{position:relative;max-height:330px;overflow:hidden;padding:4px 6px 0;font-size:15.5px;line-height:1.85}
+.rp-body.open{max-height:none}
+.rp-body:not(.open)::after{content:"";position:absolute;inset-inline:0;bottom:0;height:90px;background:linear-gradient(transparent,var(--surface))}
+.rp-body p{margin:0}
+.rp-body b{font-weight:800}
+.rp-body .rp-h{font-family:var(--display);font-weight:900;font-size:17px;margin-top:2px}
+.rp-gap{height:8px}
+.rp-rule{border:0;border-top:1px dashed var(--line);margin:10px 0}
+.rp-more{justify-self:center;border:1px solid var(--accent);color:var(--accent);background:var(--surface);border-radius:99px;padding:8px 18px;font-weight:800;cursor:pointer}
+
 /* ===== fan (students) view ===== */
 .fan{display:grid;gap:14px;max-width:560px;margin:0 auto}
 .fan-top{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:12px 14px;position:relative;overflow:hidden}
@@ -338,7 +350,7 @@ const uid=()=>Math.random().toString(36).slice(2,9);
 const root=document.getElementById('root');
 
 function ensure(){
-  S.dayDates=S.dayDates||{};S.transfers=S.transfers||[];S.awards=S.awards||[];S.challenges=S.challenges||[];S.floaters=S.floaters||[];S.lineups=S.lineups||{};S.matches=S.matches||[];
+  S.dayDates=S.dayDates||{};S.transfers=S.transfers||[];S.awards=S.awards||[];S.challenges=S.challenges||[];S.floaters=S.floaters||[];S.lineups=S.lineups||{};S.matches=S.matches||[];S.reports=S.reports||{};
   if(!S.loanLog){S.loanLog=[];S.matches.forEach(m=>{(m.loans||[]).forEach(l=>S.loanLog.push({id:uid(),day:m.day,slot:m.slot,p:l.p,from:l.from,to:l.to,fee:LOAN_FEE,payTo:'lender',note:''}));delete m.loans})}
 if(!S.fixtures||!S.fixtures.length){
     const X=[['asood','suqoor'],['liyooth','fuhood']],Y=[['asood','fuhood'],['suqoor','liyooth']],Z=[['asood','liyooth'],['suqoor','fuhood']];
@@ -354,7 +366,7 @@ let canWrite=false,PIN=null,VER=0,LOADED=false,CONFIGURED=true;const DL=true;
 const isLajna=()=>location.hash.replace('#','')==='lajna';
 let PID='poster';
 const lastDay=()=>S.matches.reduce((m,x)=>Math.max(m,x.day),0);
-const ui={lday:0,sday:0,tab:'table',edit:null,draft:null,confirm:null,ptype:'table',cEdit:null,pteam:'asood',sqEdit:null,sqDraft:null,pday:lastDay()||1,tf:null};
+const ui={rday:0,rfull:false,redit:0,lday:0,sday:0,tab:'table',edit:null,draft:null,confirm:null,ptype:'table',cEdit:null,pteam:'asood',sqEdit:null,sqDraft:null,pday:lastDay()||1,tf:null};
 try{const t=sessionStorage.getItem('ghiras-tab');if(t)ui.tab=t}catch(e){}
 
 const matchAt=(d,s)=>S.matches.find(m=>m.day===d&&m.slot===s);
@@ -416,7 +428,7 @@ function hero(){
   ${done?`<div class="facts"><div><span>المتصدر:</span> ${esc(T(lead.id).name)} (${ar(lead.pts)} نقاط)</div><div><span>الهداف:</span> ${esc(top?top.name:'—')} (${ar(top?top.g:0)})</div><div><span>الأهداف:</span> ${ar(goals)} في ${ar(done)} مباريات</div></div>`:''}
   </header>`;
 }
-const TABS=[['table','الترتيب'],['matches','المباريات'],['scorers','الهدافون'],['squads','التشكيلات'],['challenges','التحديات'],['money','الخزينة والسوق'],['posts','المنشورات']];
+const TABS=[['table','الترتيب'],['matches','المباريات'],['scorers','الهدافون'],['squads','التشكيلات'],['challenges','التحديات'],['reports','التقارير'],['money','الخزينة والسوق'],['posts','المنشورات']];
 function tabs(){return `<nav class="tabs" role="tablist">${TABS.map(([k,l])=>`<button class="tab" role="tab" data-act="tab" data-k="${k}" aria-selected="${ui.tab===k}">${l}</button>`).join('')}</nav>`}
 function status(){
   if(!isLajna())return !LOADED?`<div class="status">جارٍ تحميل آخر النتائج…</div>`:'';
@@ -637,10 +649,39 @@ function vPosts(){
   <div class="p-wrap" id="pwrap"><div class="p-scale" id="pscale">${P()}</div></div>
   <p class="note" style="text-align:center">${DL?'الصورة بمقاس ١٠٨٠×١٣٥٠، وعلى الجوال تُشارَك مباشرة إلى الواتساب.':'لحفظ المنشور خذ لقطة شاشة للبطاقة.'}</p>`;
 }
-const SECTIONS=[['standings','الترتيب'],['next','القادمة'],['results','النتائج'],['scorers','الهدافون'],['lineups','التشكيلات'],['challenges','التحديات']];
+const SECTIONS=[['report','التقرير'],['standings','الترتيب'],['next','القادمة'],['results','النتائج'],['scorers','الهدافون'],['lineups','التشكيلات'],['challenges','التحديات']];
 function withPid(id,fn){PID='poster-'+id;try{return fn()}finally{PID='poster'}}
 function sec(id,title,controls,poster){
   return `<section class="fan-sec" id="sec-${id}"><div class="fan-h"><h2>${title}</h2><button class="btn share" data-act="fanpng" data-k="${id}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg>مشاركة</button></div>${controls||''}<div class="p-wrap"><div class="p-scale">${poster}</div></div></section>`;
+}
+/* ---------- round reports ---------- */
+const reportRounds=()=>Object.keys(S.reports||{}).map(Number).filter(d=>S.reports[d]&&S.reports[d].text&&S.reports[d].text.trim()).sort((a,b)=>a-b);
+function fmtReport(t){
+  return String(t||'').split('\n').map(line=>{
+    const L=line.trim();
+    if(!L)return '<div class="rp-gap"></div>';
+    if(/^[━─_\-=]{4,}$/.test(L))return '<hr class="rp-rule">';
+    let h=esc(L).replace(/\*([^*\n]+)\*/g,'<b>$1</b>');
+    if(/^\*[^*]+\*$/.test(L))return `<p class="rp-h">${h}</p>`;
+    return `<p>${h}</p>`;
+  }).join('');
+}
+function reportCard(){
+  const rr=reportRounds();if(!rr.length)return '';
+  if(!ui.rday||!rr.includes(ui.rday))ui.rday=rr[rr.length-1];
+  const r=S.reports[ui.rday];
+  const chips=rr.length>1?`<div class="fan-chips">${rr.map(d=>`<button data-act="rday" data-k="${d}" aria-pressed="${d===ui.rday}">${dayLabel(d).replace('الجولة ','')}</button>`).join('')}</div>`:'';
+  return `<section class="fan-sec rp" id="sec-report"><div class="fan-h"><h2>تقرير ${dayLabel(ui.rday)}</h2><button class="btn share" data-act="rcopy"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>نسخ للواتساب</button></div>${chips}
+  <div class="rp-body${ui.rfull?' open':''}" id="rp-body">${fmtReport(r.text)}</div>
+  ${ui.rfull?'':`<button class="rp-more" data-act="rmore">اقرأ التقرير كاملًا</button>`}</section>`;
+}
+function vReports(){
+  const d=ui.redit||Math.max(1,lastDay());const r=(S.reports||{})[d]||{text:''};
+  return `<div class="panel" style="padding:14px;display:grid;gap:10px">
+    <label class="field">الجولة<select id="rp-day" data-act="rpday">${[1,2,3,4,5,6].map(x=>`<option value="${x}"${x===d?' selected':''}>${dayLabel(x)}${(S.reports||{})[x]&&S.reports[x].text?' ✓':''}</option>`).join('')}</select></label>
+    <label class="field">نص التقرير<textarea id="rp-text" rows="18" ${canWrite?'':'readonly'} placeholder="اكتب التقرير هنا. النص بين نجمتين *هكذا* يظهر عريضًا، والسطر المكوّن من ━━━━ يظهر خطًّا فاصلًا." style="font:inherit;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--surface);color:var(--ink);resize:vertical;line-height:1.7">${esc(r.text||'')}</textarea></label>
+    ${canWrite?`<div class="ed-actions"><button class="btn primary" data-act="rpsave">نشر التقرير</button>${r.text?(ui.confirm==='rp'?`<button class="btn danger" data-act="rpdel">تأكيد حذف التقرير</button>`:`<button class="btn danger" data-act="rpaskdel">حذف التقرير</button>`):''}</div>`:''}
+    <p class="note">يظهر التقرير للطلاب أعلى صفحتهم، مع زر لنسخه إلى الواتساب. ${r.updated?'آخر تحديث: '+esc(r.updated):''}</p></div>`;
 }
 function fanView(){
   const ld=lastDay(),nd=nextRound(),sc=scorers(),lead=table()[0];
@@ -648,9 +689,10 @@ function fanView(){
   const keep=ui.pday;
   const head=`<header class="fan-top"><span class="brand"><img src="${LOGO}" alt="شعار غراس" width="52" height="50"><span><h1>دوري غراس</h1><small>تنظيم فريق غراس التطوعي</small></span></span><span class="hpill">${ld?dayLabel(ld):'قبل الانطلاق'}</span></header>
   ${ld?`<div class="fan-facts"><div><small>المتصدر</small><b>${esc(T(lead.id).name)}</b><span class="num">${ar(lead.pts)} نقاط</span></div><div><small>الهداف</small><b>${esc(sc[0]?sc[0].name:'—')}</b><span class="num">${ar(sc[0]?sc[0].g:0)} أهداف</span></div><div><small>الجولة القادمة</small><b>${nd?dayLabel(nd).replace('الجولة ',''):'—'}</b><span>${nd&&S.dayDates[nd]?esc(S.dayDates[nd]):'من ٦ جولات'}</span></div></div>`:''}
-  <nav class="fan-nav" aria-label="أقسام الصفحة">${SECTIONS.filter(([k])=>k!=='next'||nd).filter(([k])=>k!=='results'||ld).map(([k,l])=>`<a href="#sec-${k}" data-act="jump" data-k="${k}">${l}</a>`).join('')}</nav>`;
+  <nav class="fan-nav" aria-label="أقسام الصفحة">${SECTIONS.filter(([k])=>k!=='next'||nd).filter(([k])=>k!=='results'||ld).filter(([k])=>k!=='report'||reportRounds().length).map(([k,l])=>`<a href="#sec-${k}" data-act="jump" data-k="${k}">${l}</a>`).join('')}</nav>`;
   let html='';
   ui.pday=Math.max(1,ld);
+  html+=reportCard();
   html+=sec('standings','جدول الترتيب','',withPid('standings',pTable));
   if(nd)html+=sec('next','الجولة القادمة','',withPid('next',()=>pFixtures(nd)));
   if(ld){
@@ -677,7 +719,7 @@ addEventListener('hashchange',()=>{if(!isLajna()&&canWrite){/* keep session */}r
 
 function render(){
   if(!isLajna()){root.innerHTML=fanView();fitPoster();return}
-  const v={table:vTable,matches:vMatches,scorers:vScorers,squads:vSquads,challenges:vChallenges,money:vMoney,posts:vPosts}[ui.tab]();
+  const v={table:vTable,matches:vMatches,scorers:vScorers,squads:vSquads,challenges:vChallenges,reports:vReports,money:vMoney,posts:vPosts}[ui.tab]();
   root.innerHTML=hero()+tabs()+status()+v;
   if(ui.tab==='posts')fitPoster();
 }
@@ -804,6 +846,14 @@ root.addEventListener('click',async ev=>{
   if(act==='png'){await exportPng();return}
   if(act==='fanpng'){await exportPng('poster-'+b.dataset.k,b.dataset.k);return}
   if(act==='sday'){ui.sday=+b.dataset.k;render();return}
+  if(act==='rday'){ui.rday=+b.dataset.k;ui.rfull=false;render();return}
+  if(act==='rmore'){ui.rfull=true;render();return}
+  if(act==='rcopy'){const t=(S.reports[ui.rday]||{}).text||'';try{await navigator.clipboard.writeText(t);toast('نُسخ التقرير، الصقه في الواتساب')}catch(e){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('نُسخ التقرير، الصقه في الواتساب')}catch(_){toast('تعذّر النسخ، حدّد النص وانسخه يدويًا','err')}ta.remove()}return}
+  if(act==='rpsave'){const d=ui.redit||Math.max(1,lastDay());const t=document.getElementById('rp-text').value;
+    if(!t.trim()){toast('اكتب نص التقرير أولًا','err');return}
+    S.reports[d]={text:t,updated:new Date().toLocaleDateString('ar-SA-u-ca-islamic',{day:'numeric',month:'long',year:'numeric'})};ui.rday=d;render();await save('نُشر التقرير');return}
+  if(act==='rpaskdel'){ui.confirm='rp';render();return}
+  if(act==='rpdel'){const d=ui.redit||Math.max(1,lastDay());delete S.reports[d];ui.confirm=null;render();await save('حُذف التقرير');return}
   if(act==='steam'){ui.pteam=b.dataset.k;render();return}
   if(act==='jump'){ev.preventDefault();const t=document.getElementById('sec-'+b.dataset.k);if(t)t.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});return}
 });
@@ -826,6 +876,7 @@ root.addEventListener('change',ev=>{
   else if(act==='lt')dr.loans[+el.dataset.i].to=el.value;
   else if(act==='lpt')dr.loans[+el.dataset.i].payTo=el.value;
   else if(act==='lday'){ui.lday=+el.value;render()}
+  else if(act==='rpday'){ui.redit=+el.value;ui.confirm=null;render()}
   else if(act==='pday'){ui.pday=+el.value;render()}
   else if(act==='pteam'){ui.pteam=el.value;render()}
   else if(act==='sqc'){ui.sqDraft[+el.dataset.i].c=el.checked}
