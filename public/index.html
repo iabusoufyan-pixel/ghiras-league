@@ -953,6 +953,13 @@ function revertTransfer(x){if(x.smv){movePlayer(x.smv,x.from,x.to);delete x.smv}
 function syncTransfers(){let ch=false;S.fixes=S.fixes||[];
   if(!S.fixes.includes('yousef-ateeq')){const x=S.transfers.find(t=>nm(t.player).includes(nm('محمد اليوسف'))&&t.from==='liyooth'&&t.to==='fuhood');
     if(x){if(x.swap!=='العتيق'){x.swap='العتيق'}S.fixes.push('yousef-ateeq');ch=true}}
+  // إعارات مجانية فات تسجيلها في الجولة الثالثة، وتصحيح إعارتين
+  if(!S.fixes.includes('loans-r3')){S.loanLog=S.loanLog||[];
+    [[4,'أسامة حمدان','asood','suqoor'],[4,'معاذ الحسيني','asood','fuhood'],[6,'رواف','fuhood','liyooth'],[6,'أسامة حمدان','asood','fuhood']].forEach(([sl,p,from,to])=>{
+      if(!S.loanLog.some(l=>l.day===3&&l.slot===sl&&canon(l.p)===p&&l.to===to))S.loanLog.push({id:uid(),day:3,slot:sl,p,from,to,fee:0,payTo:'lender',note:'إعارة مجانية'})});
+    S.loanLog.forEach(l=>{if(l.day===3&&l.slot===5&&nm(l.p)===nm('مشاري')&&l.from==='suqoor')l.from='liyooth'});
+    let seen=false;S.loanLog=S.loanLog.filter(l=>{if(l.day===3&&l.slot===1&&nm(l.p)===nm('العتيق')&&l.to==='fuhood'){if(seen)return false;seen=true}return true});
+    S.fixes.push('loans-r3');ch=true}
   // توحيد الأسماء المختصرة في الأهداف والإعارات المسجّلة سابقًا
   S.matches.forEach(m=>(m.goals||[]).forEach(g=>{const c=canon(g.p);if(c!==g.p){g.p=c;ch=true}}));
   (S.loanLog||[]).forEach(l=>{const c=canon(l.p);if(c!==l.p){l.p=c;ch=true}});
