@@ -960,6 +960,11 @@ function syncTransfers(){let ch=false;S.fixes=S.fixes||[];
     S.loanLog.forEach(l=>{if(l.day===3&&l.slot===5&&nm(l.p)===nm('مشاري')&&l.from==='suqoor')l.from='liyooth'});
     let seen=false;S.loanLog=S.loanLog.filter(l=>{if(l.day===3&&l.slot===1&&nm(l.p)===nm('العتيق')&&l.to==='fuhood'){if(seen)return false;seen=true}return true});
     S.fixes.push('loans-r3');ch=true}
+  // لاعبان حرّان جديدان مثل أبو سارة وأبو راضي
+  if(!S.fixes.includes('floaters-r3')){S.floaters=S.floaters||[];
+    ['أبو حور','أبو زامل'].forEach(f=>{if(!S.floaters.some(x=>nm(x)===nm(f)))S.floaters.push(f);
+      S.matches.forEach(m=>(m.goals||[]).forEach(g=>{if(nm(g.p)===nm(f))g.p=f}))});
+    S.fixes.push('floaters-r3');ch=true}
   // توحيد الأسماء المختصرة في الأهداف والإعارات المسجّلة سابقًا
   S.matches.forEach(m=>(m.goals||[]).forEach(g=>{const c=canon(g.p);if(c!==g.p){g.p=c;ch=true}}));
   (S.loanLog||[]).forEach(l=>{const c=canon(l.p);if(c!==l.p){l.p=c;ch=true}});
