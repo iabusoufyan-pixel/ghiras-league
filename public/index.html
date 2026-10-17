@@ -357,6 +357,21 @@ h1,h2,h3,h4,.brand h1,.hpill,.tab,.pts,.score,.cr,.rank,.sc-name,.sc-g,.mbig,.ch
 
 .cat{font-style:normal;display:inline-grid;place-items:center;min-width:17px;height:17px;padding:0 3px;border-radius:5px;font-size:10.5px;font-weight:700;margin-inline-start:4px;vertical-align:1px;font-family:var(--display);text-shadow:none}
 .cat-a{background:#3d8b3d;color:#fff}.cat-b{background:#a9c23f;color:#1d2a10}.cat-c{background:#e6eae6;color:#4a514a}
+
+/* polls */
+.pl-opts{display:grid;gap:8px}
+.pl-opt{text-align:start;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:12px 14px;font-family:var(--display);font-weight:700;font-size:16px;cursor:pointer}
+.pl-opt:hover,.pl-opt:focus-visible{border-color:var(--accent)}
+.pl-opt:disabled{opacity:.6}
+.pl-res{display:grid;gap:6px}
+.pl-row{position:relative;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;background:var(--soft);overflow:hidden}
+.pl-bar{position:absolute;inset-block:0;inset-inline-start:0;background:var(--accent-soft);transition:width .5s}
+.pl-row.lead .pl-bar{background:color-mix(in srgb,var(--accent) 28%,transparent)}
+.pl-o,.pl-n{position:relative;font-family:var(--display);font-weight:700}
+.pl-o small{font-family:var(--body);font-weight:600;color:var(--accent);font-size:12px}
+.pl-row.mine{box-shadow:inset 0 0 0 1.5px var(--accent)}
+.pl-tot{margin:2px 0 0}
+@media (prefers-reduced-motion:reduce){.pl-bar{transition:none}}
 /* round report */
 .rp-body{position:relative;max-height:330px;overflow:hidden;padding:4px 6px 0;font-size:15.5px;line-height:1.85}
 .rp-body.open{max-height:none}
@@ -436,7 +451,7 @@ const uid=()=>Math.random().toString(36).slice(2,9);
 const root=document.getElementById('root');
 
 function ensure(){
-  S.dayDates=S.dayDates||{};S.transfers=S.transfers||[];S.awards=S.awards||[];S.challenges=S.challenges||[];S.floaters=S.floaters||[];S.lineups=S.lineups||{};S.matches=S.matches||[];S.reports=S.reports||{};S.bonuses=S.bonuses||[];
+  S.dayDates=S.dayDates||{};S.transfers=S.transfers||[];S.awards=S.awards||[];S.challenges=S.challenges||[];S.floaters=S.floaters||[];S.lineups=S.lineups||{};S.matches=S.matches||[];S.reports=S.reports||{};S.bonuses=S.bonuses||[];S.polls=S.polls||[];
   if(!S.loanLog){S.loanLog=[];S.matches.forEach(m=>{(m.loans||[]).forEach(l=>S.loanLog.push({id:uid(),day:m.day,slot:m.slot,p:l.p,from:l.from,to:l.to,fee:LOAN_FEE,payTo:'lender',note:''}));delete m.loans})}
 if(!S.fixtures||!S.fixtures.length){
     const X=[['asood','suqoor'],['liyooth','fuhood']],Y=[['asood','fuhood'],['suqoor','liyooth']],Z=[['asood','liyooth'],['suqoor','fuhood']];
@@ -454,7 +469,7 @@ let canWrite=false,PIN=null,VER=0,LOADED=false,CONFIGURED=true;const DL=true;
 const isLajna=()=>location.hash.replace('#','')==='lajna';
 let PID='poster';
 const lastDay=()=>S.matches.reduce((m,x)=>Math.max(m,x.day),0);
-const ui={rday:0,rfull:false,redit:0,lday:0,sday:0,tab:'table',edit:null,draft:null,confirm:null,ptype:'table',cEdit:null,pteam:'asood',sqEdit:null,sqDraft:null,pday:lastDay()||1,tf:null};
+const ui={pnew:false,rday:0,rfull:false,redit:0,lday:0,sday:0,tab:'table',edit:null,draft:null,confirm:null,ptype:'table',cEdit:null,pteam:'asood',sqEdit:null,sqDraft:null,pday:lastDay()||1,tf:null};
 try{const t=sessionStorage.getItem('ghiras-tab');if(t)ui.tab=t}catch(e){}
 
 const matchAt=(d,s)=>S.matches.find(m=>m.day===d&&m.slot===s);
@@ -521,7 +536,7 @@ function hero(){
   ${done?`<div class="facts"><div><span>المتصدر:</span> ${esc(T(lead.id).name)} (${ar(lead.pts)} نقاط)</div><div><span>الهداف:</span> ${esc(top?top.name:'—')} (${ar(top?top.g:0)})</div><div><span>الأهداف:</span> ${ar(goals)} في ${ar(done)} مباريات</div></div>`:''}
   </header>`;
 }
-const TABS=[['table','الترتيب'],['matches','المباريات'],['scorers','الهدافون'],['squads','التشكيلات'],['challenges','التحديات'],['reports','التقارير'],['money','الخزينة والسوق'],['posts','المنشورات']];
+const TABS=[['table','الترتيب'],['matches','المباريات'],['scorers','الهدافون'],['squads','التشكيلات'],['challenges','التحديات'],['polls','التصويت'],['reports','التقارير'],['money','الخزينة والسوق'],['posts','المنشورات']];
 function tabs(){return `<nav class="tabs" role="tablist">${TABS.map(([k,l])=>`<button class="tab" role="tab" data-act="tab" data-k="${k}" aria-selected="${ui.tab===k}">${l}</button>`).join('')}</nav>`}
 function status(){
   if(!isLajna())return !LOADED?`<div class="status">جارٍ تحميل آخر النتائج…</div>`:'';
@@ -756,7 +771,7 @@ function vPosts(){
   <div class="p-wrap" id="pwrap"><div class="p-scale" id="pscale">${P()}</div></div>
   <p class="note" style="text-align:center">${DL?'الصورة بمقاس ١٠٨٠×١٣٥٠، وعلى الجوال تُشارَك مباشرة إلى الواتساب.':'لحفظ المنشور خذ لقطة شاشة للبطاقة.'}</p>`;
 }
-const SECTIONS=[['report','التقرير'],['standings','الترتيب'],['next','القادمة'],['results','النتائج'],['scorers','الهدافون'],['lineups','التشكيلات'],['challenges','التحديات']];
+const SECTIONS=[['poll','التصويت'],['report','التقرير'],['standings','الترتيب'],['next','القادمة'],['results','النتائج'],['scorers','الهدافون'],['lineups','التشكيلات'],['challenges','التحديات']];
 function withPid(id,fn){PID='poster-'+id;try{return fn()}finally{PID='poster'}}
 function sec(id,title,controls,poster){
   return `<section class="fan-sec" id="sec-${id}"><div class="fan-h"><h2>${title}</h2><button class="btn share" data-act="fanpng" data-k="${id}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg>مشاركة</button></div>${controls||''}<div class="p-wrap"><div class="p-scale">${poster}</div></div></section>`;
@@ -845,6 +860,33 @@ function newspaper(text,d){
     <div class="np-bottom">${fxHtml}${pollHtml}</div>
     <footer class="np-foot">جريدة غراس · ${dayLabel(d)} · تنظيم فريق غراس التطوعي</footer></div>`;
 }
+/* ---------- polls ---------- */
+const voterId=()=>{try{let v=localStorage.getItem('ghiras-voter');if(!v){v=(crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2)+Date.now().toString(36));localStorage.setItem('ghiras-voter',v)}return v}catch(e){return 'anon-'+Math.random().toString(36).slice(2)}};
+const myVote=id=>{try{const v=localStorage.getItem('ghiras-vote-'+id);return v==null?null:+v}catch(e){return null}};
+const fanPolls=()=>(S.polls||[]).filter(p=>p.open||p.showResults).slice().reverse();
+function pollResults(p,mine){
+  const c=VOTES[p.id]||{},tot=p.options.reduce((t,_,i)=>t+(c[i]||0),0),max=Math.max(0,...p.options.map((_,i)=>c[i]||0));
+  return `<div class="pl-res">${p.options.map((o,i)=>{const n=c[i]||0,pc=tot?Math.round(n/tot*100):0;
+    return `<div class="pl-row${n===max&&n>0?' lead':''}${mine===i?' mine':''}"><div class="pl-bar" style="width:${pc}%"></div><span class="pl-o">${esc(o)}${mine===i?' <small>✓ صوتك</small>':''}</span><span class="pl-n num">${ar(pc)}٪</span></div>`}).join('')}
+    <p class="note pl-tot num">${tot===0?'لا أصوات بعد':tot===1?'صوت واحد':tot===2?'صوتان':ar(tot)+' '+(tot<11?'أصوات':'صوتًا')}${p.open?' · التصويت مفتوح':' · أُغلق التصويت'}</p></div>`;
+}
+function pollCards(){
+  const ps=fanPolls();if(!ps.length)return '';
+  return ps.map(p=>{const mine=myVote(p.id);const voted=mine!=null;
+    const body=(p.open&&!voted)?`<div class="pl-opts">${p.options.map((o,i)=>`<button class="pl-opt" data-act="vote" data-id="${p.id}" data-k="${i}">${esc(o)}</button>`).join('')}</div><p class="note">صوت واحد لكل جوال، وتظهر النتائج بعد التصويت.</p>`:pollResults(p,mine);
+    return `<section class="fan-sec pl" id="sec-poll"><div class="fan-h"><h2>🗳️ ${esc(p.q)}</h2></div>${body}</section>`}).join('');
+}
+function vPolls(){
+  const ps=(S.polls||[]).slice().reverse();
+  const form=canWrite?`<h3 class="section-h" style="margin-top:0">تصويت جديد</h3><div class="panel" style="padding:14px;display:grid;gap:10px">
+    <label class="field">السؤال<input id="pf-q" type="text" placeholder="مثل: من نجم الجولة الثالثة؟"></label>
+    <label class="field">الخيارات (كل خيار في سطر)<textarea id="pf-o" rows="5" placeholder="رواف&#10;أسامة حمدان&#10;حسام حمدان" style="font:inherit;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--surface);color:var(--ink)"></textarea></label>
+    <div class="ed-actions"><button class="btn primary" data-act="padd">نشر التصويت</button></div></div>`:'';
+  const list=ps.length?ps.map(p=>{const c=VOTES[p.id]||{},tot=p.options.reduce((t,_,i)=>t+(c[i]||0),0);
+    return `<div class="panel" style="padding:14px;display:grid;gap:8px"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b>${esc(p.q)}</b><span class="hpill">${p.open?'مفتوح':'مغلق'}</span></div>${pollResults(p,null)}
+    ${canWrite?`<div class="ed-actions"><button class="btn" data-act="ptoggle" data-id="${p.id}">${p.open?'إغلاق التصويت':'إعادة فتحه'}</button><button class="btn" data-act="pshow" data-id="${p.id}">${p.showResults||p.open?'إخفاؤه عن الطلاب':'إظهار نتيجته للطلاب'}</button>${ui.confirm==='p'+p.id?`<button class="btn danger" data-act="pdel" data-id="${p.id}">تأكيد الحذف</button>`:`<button class="btn danger" data-act="paskdel" data-id="${p.id}">حذف</button>`}</div>`:''}</div>`}).join(''):`<div class="panel empty">لا توجد تصويتات بعد.</div>`;
+  return `${form}<h3 class="section-h">التصويتات</h3><div style="display:grid;gap:10px">${list}</div><p class="note">يظهر التصويت المفتوح أعلى صفحة الطلاب. وبعد إغلاقه تبقى نتيجته ظاهرة لهم، إلا إن أخفيتها.</p>`;
+}
 function reportCard(){
   const rr=reportRounds();if(!rr.length)return '';
   if(!ui.rday||!rr.includes(ui.rday))ui.rday=rr[rr.length-1];
@@ -868,9 +910,10 @@ function fanView(){
   const keep=ui.pday;
   const head=`<header class="fan-top"><span class="brand"><img src="${LOGO}" alt="شعار غراس" width="52" height="50"><span><h1>دوري غراس</h1><small>تنظيم فريق غراس التطوعي</small></span></span><span class="hpill">${ld?dayLabel(ld):'قبل الانطلاق'}</span></header>
   ${ld?`<div class="fan-facts"><div><small>المتصدر</small><b>${esc(T(lead.id).name)}</b><span class="num">${ar(lead.pts)} نقاط</span></div><div><small>الهداف</small><b>${esc(sc[0]?sc[0].name:'—')}</b><span class="num">${ar(sc[0]?sc[0].g:0)} أهداف</span></div><div><small>الجولة القادمة</small><b>${nd?dayLabel(nd).replace('الجولة ',''):'—'}</b><span>${nd&&S.dayDates[nd]?esc(S.dayDates[nd]):'من ٦ جولات'}</span></div></div>`:''}
-  <nav class="fan-nav" aria-label="أقسام الصفحة">${SECTIONS.filter(([k])=>k!=='next'||nd).filter(([k])=>k!=='results'||ld).filter(([k])=>k!=='report'||reportRounds().length).map(([k,l])=>`<a href="#sec-${k}" data-act="jump" data-k="${k}">${l}</a>`).join('')}</nav>`;
+  <nav class="fan-nav" aria-label="أقسام الصفحة">${SECTIONS.filter(([k])=>k!=='next'||nd).filter(([k])=>k!=='results'||ld).filter(([k])=>k!=='report'||reportRounds().length).filter(([k])=>k!=='poll'||fanPolls().length).map(([k,l])=>`<a href="#sec-${k}" data-act="jump" data-k="${k}">${l}</a>`).join('')}</nav>`;
   let html='';
   ui.pday=Math.max(1,ld);
+  html+=pollCards();
   html+=reportCard();
   html+=sec('standings','جدول الترتيب','',withPid('standings',pTable));
   if(nd)html+=sec('next','الجولة القادمة','',withPid('next',()=>pFixtures(nd)));
@@ -898,7 +941,7 @@ addEventListener('hashchange',()=>{if(!isLajna()&&canWrite){/* keep session */}r
 
 function render(){
   if(!isLajna()){root.innerHTML=fanView();fitPoster();return}
-  const v={table:vTable,matches:vMatches,scorers:vScorers,squads:vSquads,challenges:vChallenges,reports:vReports,money:vMoney,posts:vPosts}[ui.tab]();
+  const v={table:vTable,matches:vMatches,scorers:vScorers,squads:vSquads,challenges:vChallenges,reports:vReports,polls:vPolls,money:vMoney,posts:vPosts}[ui.tab]();
   root.innerHTML=hero()+tabs()+status()+v;
   if(ui.tab==='posts')fitPoster();
 }
@@ -911,15 +954,16 @@ async function api(body){
   return {status:r.status,j};
 }
 let FULL=false;
+let VOTES={};
 function adopt(j){
-  CONFIGURED=j.configured!==false;FULL=!!j.full;
+  CONFIGURED=j.configured!==false;FULL=!!j.full;VOTES=j.votes||{};
   if(j.data){S=j.data;ensure();VER=j.version||0}
   else VER=j.version||0;
   LOADED=true;ui.pday=Math.min(Math.max(1,ui.pday),Math.max(1,lastDay()));
 }
 async function load(silent){
   try{const {status:st,j}=PIN&&canWrite?await api({action:'load',pin:PIN}):await api();if(st!==200)throw 0;
-    if(silent&&j.version===VER&&LOADED)return false;
+    if(silent&&j.version===VER&&LOADED&&JSON.stringify(j.votes||{})===JSON.stringify(VOTES))return false;
     adopt(j);return true}
   catch(e){LOADED=true;if(!silent)toast('تعذّر تحميل آخر البيانات، والمعروض بيانات البداية','err');return !silent}
 }
@@ -1089,6 +1133,18 @@ root.addEventListener('click',async ev=>{
   if(act==='sday'){ui.sday=+b.dataset.k;ui.sdayPicked=true;render();return}
   if(act==='rday'){ui.rday=+b.dataset.k;ui.rfull=false;render();return}
   if(act==='rmore'){ui.rfull=true;render();return}
+  if(act==='vote'){const id=b.dataset.id,k=+b.dataset.k;b.disabled=true;
+    try{const {status:st,j}=await api({action:'vote',poll:id,option:k,voter:voterId()});
+      if(st===200||j.already){try{localStorage.setItem('ghiras-vote-'+id,String(st===200?k:(myVote(id)??k)))}catch(e){};if(j.votes)VOTES=j.votes;toast(st===200?'سُجّل صوتك، شكرًا لك':'صوّتَّ من قبل في هذا التصويت');render()}
+      else{toast(j.error||'تعذّر تسجيل الصوت','err');b.disabled=false;if(st===409)load().then(render)}}
+    catch(e){toast('لا يوجد اتصال، حاول مرة أخرى','err');b.disabled=false}return}
+  if(act==='padd'){const q=document.getElementById('pf-q').value.trim();const opts=document.getElementById('pf-o').value.split('\n').map(x=>x.trim()).filter(Boolean);
+    if(!q){toast('اكتب سؤال التصويت','err');return}if(opts.length<2){toast('اكتب خيارين على الأقل، كل خيار في سطر','err');return}
+    S.polls.push({id:'p'+uid(),q,options:opts.slice(0,10),open:true,showResults:true,day:Math.max(1,lastDay())});render();await save('نُشر التصويت');return}
+  if(act==='ptoggle'){const p=S.polls.find(x=>x.id===b.dataset.id);if(p){p.open=!p.open;if(p.open)p.showResults=true}render();await save(p&&p.open?'فُتح التصويت':'أُغلق التصويت');return}
+  if(act==='pshow'){const p=S.polls.find(x=>x.id===b.dataset.id);if(p){if(p.open){p.open=false;p.showResults=false}else p.showResults=!p.showResults}render();await save('حُفظ');return}
+  if(act==='paskdel'){ui.confirm='p'+b.dataset.id;render();return}
+  if(act==='pdel'){S.polls=S.polls.filter(x=>x.id!==b.dataset.id);ui.confirm=null;render();await save('حُذف التصويت');return}
   if(act==='rcopy'){const t=(S.reports[ui.rday]||{}).text||'';try{await navigator.clipboard.writeText(t);toast('نُسخ التقرير، الصقه في الواتساب')}catch(e){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('نُسخ التقرير، الصقه في الواتساب')}catch(_){toast('تعذّر النسخ، حدّد النص وانسخه يدويًا','err')}ta.remove()}return}
   if(act==='rpsave'){const d=ui.redit||Math.max(1,lastDay());const t=document.getElementById('rp-text').value;
     if(!t.trim()){toast('اكتب نص التقرير أولًا','err');return}

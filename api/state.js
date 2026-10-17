@@ -2,6 +2,7 @@
 // GET  /api/state                              → آخر نسخة من بيانات الدوري (للجميع)
 // POST /api/state {action:"login", pin}        → التحقق من رمز اللجنة
 // POST /api/state {action:"save", pin, version, data} → حفظ البيانات (للجنة فقط)
+// POST /api/state {action:"vote", poll, option, voter} → صوت في تصويت مفتوح (للجميع، صوت واحد لكل جهاز)
 //
 // التخزين: Upstash Redis المربوط من Vercel Marketplace.
 // المتغيرات المطلوبة في Vercel:
@@ -58,6 +59,20 @@ function publicView(d) {
   return rest;
 }
 
+// عدّادات الأصوات محفوظة خارج بيانات الدوري حتى لا يتعارض التصويت مع حفظ اللجنة
+const MAX_VOTES_PER_IP = 40; // شبكة واحدة قد يشترك فيها طلاب الحلقة كلهم
+async function pollCounts(data) {
+  const polls = (data && data.polls) || [];
+  const out = {};
+  for (const p of polls) {
+    const arr = (await redis(["HGETALL", `ghiras:poll:${p.id}`])) || [];
+    const c = {};
+    for (let i = 0; i < arr.length; i += 2) c[arr[i]] = Number(arr[i + 1]);
+    out[p.id] = c;
+  }
+  return out;
+}
+
 function validData(d) {
   return (
     d && typeof d === "object" && !Array.isArray(d) &&
@@ -85,10 +100,12 @@ export default async function handler(req, res) {
   try {
     if (req.method === "GET") {
       const [raw, ver] = await redis(["MGET", KEY_DATA, KEY_VER]);
+      const full = raw ? JSON.parse(raw) : null;
       return res.status(200).json({
         configured: true,
         version: Number(ver || 0),
-        data: raw ? publicView(JSON.parse(raw)) : null,
+        data: full ? publicView(full) : null,
+        votes: full ? await pollCounts(full) : {},
         full: false,
       });
     }
@@ -100,6 +117,26 @@ export default async function handler(req, res) {
 
     let body;
     try { body = await readBody(req); } catch { return res.status(400).json({ error: "طلب غير صالح" }); }
+
+    if (body.action === "vote") {
+      const raw = await redis(["GET", KEY_DATA]);
+      const data = raw ? JSON.parse(raw) : null;
+      const poll = ((data && data.polls) || []).find((p) => p.id === body.poll);
+      if (!poll) return res.status(404).json({ error: "التصويت غير موجود" });
+      if (!poll.open) return res.status(409).json({ error: "أُغلق هذا التصويت" });
+      const opt = Number(body.option);
+      if (!Number.isInteger(opt) || opt < 0 || opt >= (poll.options || []).length) return res.status(400).json({ error: "خيار غير صالح" });
+      const voter = String(body.voter || "").slice(0, 64);
+      if (voter.length < 8) return res.status(400).json({ error: "طلب غير صالح" });
+      const ipKey = `ghiras:pollip:${poll.id}:${clientIp(req)}`;
+      if (Number((await redis(["GET", ipKey])) || 0) >= MAX_VOTES_PER_IP) return res.status(429).json({ error: "وصلت الأصوات من هذه الشبكة إلى الحد الأعلى" });
+      const added = await redis(["SADD", `ghiras:pollvoters:${poll.id}`, voter]);
+      if (Number(added) !== 1) return res.status(409).json({ error: "صوّتَّ من قبل في هذا التصويت", already: true });
+      await redis(["HINCRBY", `ghiras:poll:${poll.id}`, String(opt), "1"]);
+      await redis(["INCR", ipKey]);
+      await redis(["EXPIRE", ipKey, 60 * 60 * 24 * 14]);
+      return res.status(200).json({ ok: true, votes: await pollCounts(data) });
+    }
 
     if (!PIN) return res.status(503).json({ error: "لم يُضبط رمز اللجنة COMMITTEE_PIN في Vercel" });
 
@@ -121,6 +158,7 @@ export default async function handler(req, res) {
         configured: true,
         version: Number(ver || 0),
         data: raw ? JSON.parse(raw) : null,
+        votes: raw ? await pollCounts(JSON.parse(raw)) : {},
         full: true,
       });
     }
