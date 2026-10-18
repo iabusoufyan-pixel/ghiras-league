@@ -534,6 +534,45 @@ body.scrap #root{max-width:none;padding:0}
 .status.login input{border:1px solid var(--line);border-radius:8px;padding:7px 10px;background:var(--surface);min-width:0;flex:1 1 160px;max-width:240px}
 
 body.scrap{overflow-anchor:none}
+
+/* ---------- صفحة اللجنة بتصميم الألبوم ---------- */
+body.lj{--bad:#b8442f;--good:#2f7d3a;--pitch:#1f4d3b;--pitch-ink:#fff;--bg:#efe8d8;--flag-bright:#ecd25a}
+.lj .lj-wrap{max-width:980px;padding-top:22px}
+.lj .sc-top .row{max-width:948px}
+.lj .lj-out{min-height:36px;padding:6px 14px;font-size:13px}
+.lj .lj-hero .paper{padding:22px 18px 18px}
+.lj .hero{background:none;border:0;box-shadow:none;padding:0;border-radius:0}
+.lj .hero::before,.lj .hero::after{display:none}
+.lj .lj-title{display:grid;line-height:1.25}
+.lj .lj-title small{font-family:var(--display);font-weight:700;color:var(--leaf);font-size:14px}
+.lj .lj-title b{font-family:var(--display);font-weight:700;font-size:24px}
+.lj .hpill{background:var(--tape);color:var(--ink);border-radius:0;font-family:var(--display);font-weight:700;clip-path:polygon(2% 6%,98% 0,100% 92%,4% 100%);padding:6px 14px}
+.lj .pday span{background:#ddd2b8}.lj .pday span.on{background:var(--leaf)}
+.lj .tabs{margin:26px 0 14px;gap:8px}
+.lj .tab{background:var(--paper);color:var(--ink);border:0;border-radius:0;font-family:var(--display);font-weight:700;padding:8px 14px;filter:drop-shadow(0 3px 4px rgba(0,0,0,.25));clip-path:polygon(0 6%,50% 0,100% 5%,98% 100%,48% 95%,2% 100%)}
+.lj .tab:nth-child(odd){transform:rotate(-1.2deg)}.lj .tab:nth-child(even){transform:rotate(1deg)}
+.lj .tab[aria-selected="true"]{background:var(--tape);color:var(--ink)}
+.lj .status{color:#dfe9e2;margin:0 0 16px}
+.lj .status.admin{display:inline-block;background:rgba(0,0,0,.18);padding:6px 12px;border:0;border-radius:0}
+.lj .status .btn.link{color:#fff}
+.lj .status.warnbox{background:var(--paper);color:var(--ink);padding:10px 14px}
+.lj .lj-view{margin-top:8px}
+.lj .lj-view .paper{padding:30px 16px 26px;min-height:300px}
+.lj .lj-view .tape.g{inset-inline-start:45%;transform:rotate(2deg);width:70px}
+.lj .panel{background:rgba(255,255,255,.62);border:1.5px solid var(--line);border-radius:0;box-shadow:none}
+.lj .editor{background:rgba(255,255,255,.5);border:1.5px dashed #c9bb98;border-radius:0}
+.lj .section-h{font-size:21px}
+.lj .btn{border-radius:0;border:1.5px solid #c9bb98;background:#fff;color:var(--ink);font-family:var(--display);font-weight:700;min-height:36px}
+.lj .btn.primary{background:var(--tape);border-color:var(--tape);color:var(--ink);clip-path:polygon(2% 6%,98% 0,100% 92%,4% 100%)}
+.lj .btn.danger{color:var(--red);border-color:#e3b3a6}
+.lj .btn.link{border:0;background:none;min-height:0}
+.lj .btn.share{background:var(--ink);border-color:var(--ink);color:#fff;border-radius:0}
+.lj .login-btn{background:var(--tape);border:0;color:var(--ink);border-radius:0;min-height:40px;padding:8px 16px;clip-path:polygon(2% 6%,98% 0,100% 92%,4% 100%)}
+.lj input,.lj select,.lj textarea{border-radius:0!important;background:#fff;color:var(--ink);border-color:#cfc3a6}
+.lj .status.login input{min-height:40px;padding:6px 10px;border:1.5px solid var(--paper)}
+.lj th{color:var(--muted)}
+.lj .standings tr.lead{background:linear-gradient(90deg,#f3e6a8,transparent)}
+.lj .cr{background:var(--tape);color:var(--ink);border-radius:0}
 </style>
 </head>
 <body>
@@ -634,7 +673,7 @@ function hero(){
   const done=S.matches.length,total=S.fixtures.length,ld=lastDay();
   const sc=scorers(),top=sc[0],goals=S.matches.reduce((s,m)=>s+m.ga+m.gb,0),lead=table()[0];
   const prog=[1,2,3,4,5,6].map(d=>`<div><div class="pday">${S.fixtures.filter(f=>f.day===d).sort((x,y)=>x.slot-y.slot).map(f=>`<span class="${matchAt(d,f.slot)?'on':''}"></span>`).join('')}</div><div class="plabel">${ar(d)}</div></div>`).join('');
-  return `<header class="hero"><div class="hero-top"><span class="brand"><img src="${LOGO}" alt="شعار غراس" width="58" height="56"><span><h1>دوري غراس</h1><small>تنظيم فريق غراس التطوعي</small></span></span>
+  return `<header class="hero"><div class="hero-top"><span class="lj-title"><small>لوحة اللجنة</small><b>مسيرة الدوري</b></span>
   <span class="hpill">${ld?dayLabel(ld):'قبل الانطلاق'}</span></div>
   <div class="hero-meta num">${ar(done)} من ${ar(total)} مباراة</div>
   <div class="progress" aria-label="تقدم الدوري">${prog}</div>
@@ -647,7 +686,7 @@ function status(){
   if(!isLajna())return !LOADED?`<div class="status">جارٍ تحميل آخر النتائج…</div>`:'';
   if(!LOADED)return `<div class="status">جارٍ تحميل آخر البيانات…</div>`;
   if(!CONFIGURED)return `<div class="status warnbox">قاعدة البيانات غير مربوطة بعد، والمعروض هو بيانات البداية ولا يمكن الحفظ. راجع خطوة ربط Upstash في دليل النشر.</div>`;
-  if(canWrite)return `<div class="status admin"><span>أنت في وضع اللجنة، وكل حفظ يظهر للجميع فورًا.</span><button class="btn link" data-act="logout">خروج</button></div>`;
+  if(canWrite)return `<div class="status admin"><span>أنت في وضع اللجنة، وكل حفظ يظهر للجميع فورًا.</span></div>`;
   if(ui.login)return `<form class="status login" id="loginform"><input id="pin" type="password" autocomplete="current-password" placeholder="رمز اللجنة" aria-label="رمز اللجنة"><button class="btn primary" type="submit">دخول</button><button class="btn link" type="button" data-act="logincancel">إلغاء</button></form>`;
   return `<div class="status"><button class="btn login-btn" data-act="login"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>دخول اللجنة</button></div>`;
 }
@@ -1130,7 +1169,7 @@ addEventListener('resize',fitPoster);
 addEventListener('hashchange',()=>{if(!isLajna()&&canWrite){/* keep session */}render();if(isLajna()&&PIN)load().then(render)});
 
 function render(){
-  if(!isLajna()){
+  if(!isLajna()){document.body.classList.remove('lj');
     // نثبت القسم الذي يتعامل معه الطالب في مكانه على الشاشة حتى لا تقفز الصفحة بعد إعادة الرسم
     let anc=ui.anc&&document.getElementById(ui.anc);ui.anc=null;
     if(!anc)anc=[...root.querySelectorAll('[id^="sc-"]')].find(e=>e.getBoundingClientRect().bottom>70);
@@ -1138,10 +1177,14 @@ function render(){
     document.body.classList.add('scrap');root.innerHTML=scrapView();tornEdges();
     const el=id&&document.getElementById(id);if(el){const d=el.getBoundingClientRect().top-top;if(Math.abs(d)>1)window.scrollBy(0,d)}
     return}
-  document.body.classList.remove('scrap');
+  document.body.classList.add('scrap','lj');
+  const y=window.scrollY;
   const v={table:vTable,matches:vMatches,scorers:vScorers,squads:vSquads,challenges:vChallenges,reports:vReports,polls:vPolls,money:vMoney,posts:vPosts}[ui.tab]();
-  root.innerHTML=hero()+tabs()+status()+v;
+  const top=`<header class="sc-top"><div class="row"><a class="sc-logo" href="#lajna"><img src="${LOGO}" alt="شعار غراس" width="44" height="42"><span>دوري غراس<small>${canWrite?'وضع اللجنة':'صفحة اللجنة'}</small></span></a>${canWrite?`<button class="gbtn dark lj-out" data-act="logout">خروج</button>`:''}</div></header>`;
+  root.innerHTML=top+`<div class="sc-wrap lj-wrap"><div class="sheet lj-hero"><span class="tape"></span><div class="paper">${hero()}</div></div>${tabs()}${status()}<div class="sheet lj-view"><span class="tape r"></span><span class="tape g"></span><div class="paper">${v}</div></div></div>`;
+  tornEdges();
   if(ui.tab==='posts')fitPoster();
+  if(Math.abs(window.scrollY-y)>1)window.scrollTo(0,y);
 }
 
 /* ---------- persistence ---------- */
