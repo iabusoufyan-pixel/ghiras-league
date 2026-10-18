@@ -61,8 +61,9 @@ function publicView(d) {
 
 // عدّادات الأصوات محفوظة خارج بيانات الدوري حتى لا يتعارض التصويت مع حفظ اللجنة
 const MAX_VOTES_PER_IP = 40; // شبكة واحدة قد يشترك فيها طلاب الحلقة كلهم
-async function pollCounts(data) {
-  const polls = (data && data.polls) || [];
+// التصويت سري: الطلاب لا يرون العدّادات إلا لتصويت مغلق أعلنت اللجنة نتيجته
+async function pollCounts(data, isPublic) {
+  const polls = ((data && data.polls) || []).filter((p) => !isPublic || (p.reveal && !p.open));
   const out = {};
   for (const p of polls) {
     const arr = (await redis(["HGETALL", `ghiras:poll:${p.id}`])) || [];
@@ -105,7 +106,7 @@ export default async function handler(req, res) {
         configured: true,
         version: Number(ver || 0),
         data: full ? publicView(full) : null,
-        votes: full ? await pollCounts(full) : {},
+        votes: full ? await pollCounts(full, true) : {},
         full: false,
       });
     }
@@ -135,7 +136,7 @@ export default async function handler(req, res) {
       await redis(["HINCRBY", `ghiras:poll:${poll.id}`, String(opt), "1"]);
       await redis(["INCR", ipKey]);
       await redis(["EXPIRE", ipKey, 60 * 60 * 24 * 14]);
-      return res.status(200).json({ ok: true, votes: await pollCounts(data) });
+      return res.status(200).json({ ok: true, votes: await pollCounts(data, true) });
     }
 
     if (!PIN) return res.status(503).json({ error: "لم يُضبط رمز اللجنة COMMITTEE_PIN في Vercel" });

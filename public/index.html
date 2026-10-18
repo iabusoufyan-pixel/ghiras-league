@@ -533,6 +533,7 @@ body.scrap #root{max-width:none;padding:0}
 .status.warnbox{background:var(--soft);border:1px solid var(--warn);border-radius:10px;padding:8px 12px;color:var(--ink)}
 .status.login input{border:1px solid var(--line);border-radius:8px;padding:7px 10px;background:var(--surface);min-width:0;flex:1 1 160px;max-width:240px}
 
+body.scrap{overflow-anchor:none}
 </style>
 </head>
 <body>
@@ -967,7 +968,10 @@ function newspaper(text,d){
 /* ---------- polls ---------- */
 const voterId=()=>{try{let v=localStorage.getItem('ghiras-voter');if(!v){v=(crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2)+Date.now().toString(36));localStorage.setItem('ghiras-voter',v)}return v}catch(e){return 'anon-'+Math.random().toString(36).slice(2)}};
 const myVote=id=>{try{const v=localStorage.getItem('ghiras-vote-'+id);return v==null?null:+v}catch(e){return null}};
-const fanPolls=()=>(S.polls||[]).filter(p=>p.open||p.showResults).slice().reverse();
+const fanPolls=()=>(S.polls||[]).filter(p=>p.open||p.reveal).slice().reverse();
+// تصويت سري: لا يرى الطالب النتيجة حتى تعلنها اللجنة
+function pollSecret(p,mine){return `<div class="pl-res">${mine!=null&&p.options[mine]!=null?`<div class="pl-row mine"><span class="pl-o">✓ سُجّل صوتك: ${esc(p.options[mine])}</span></div>`:''}<p class="note pl-tot">التصويت سري، وتعلن اللجنة النتيجة${p.open?' بعد إغلاقه':' قريبًا'}.</p></div>`}
+const fanResult=(p,mine)=>p.reveal&&!p.open?pollResults(p,mine):pollSecret(p,mine);
 function pollResults(p,mine){
   const c=VOTES[p.id]||{},tot=p.options.reduce((t,_,i)=>t+(c[i]||0),0),max=Math.max(0,...p.options.map((_,i)=>c[i]||0));
   return `<div class="pl-res">${p.options.map((o,i)=>{const n=c[i]||0,pc=tot?Math.round(n/tot*100):0;
@@ -977,7 +981,7 @@ function pollResults(p,mine){
 function pollCards(){
   const ps=fanPolls();if(!ps.length)return '';
   return ps.map(p=>{const mine=myVote(p.id);const voted=mine!=null;
-    const body=(p.open&&!voted)?`<div class="pl-opts">${p.options.map((o,i)=>`<button class="pl-opt" data-act="vote" data-id="${p.id}" data-k="${i}">${esc(o)}</button>`).join('')}</div><p class="note">صوت واحد لكل جوال، وتظهر النتائج بعد التصويت.</p>`:pollResults(p,mine);
+    const body=(p.open&&!voted)?`<div class="pl-opts">${p.options.map((o,i)=>`<button class="pl-opt" data-act="vote" data-id="${p.id}" data-k="${i}">${esc(o)}</button>`).join('')}</div><p class="note">صوت واحد لكل جوال، والتصويت سري.</p>`:fanResult(p,mine);
     return `<section class="fan-sec pl" id="sec-poll"><div class="fan-h"><h2>🗳️ ${esc(p.q)}</h2></div>${body}</section>`}).join('');
 }
 function vPolls(){
@@ -987,8 +991,8 @@ function vPolls(){
     <label class="field">الخيارات (كل خيار في سطر)<textarea id="pf-o" rows="5" placeholder="رواف&#10;أسامة حمدان&#10;حسام حمدان" style="font:inherit;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--surface);color:var(--ink)"></textarea></label>
     <div class="ed-actions"><button class="btn primary" data-act="padd">نشر التصويت</button></div></div>`:'';
   const list=ps.length?ps.map(p=>{const c=VOTES[p.id]||{},tot=p.options.reduce((t,_,i)=>t+(c[i]||0),0);
-    return `<div class="panel" style="padding:14px;display:grid;gap:8px"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b>${esc(p.q)}</b><span class="hpill">${p.open?'مفتوح':'مغلق'}</span></div>${pollResults(p,null)}
-    ${canWrite?`<div class="ed-actions"><button class="btn" data-act="ptoggle" data-id="${p.id}">${p.open?'إغلاق التصويت':'إعادة فتحه'}</button><button class="btn" data-act="pshow" data-id="${p.id}">${p.showResults||p.open?'إخفاؤه عن الطلاب':'إظهار نتيجته للطلاب'}</button>${ui.confirm==='p'+p.id?`<button class="btn danger" data-act="pdel" data-id="${p.id}">تأكيد الحذف</button>`:`<button class="btn danger" data-act="paskdel" data-id="${p.id}">حذف</button>`}</div>`:''}</div>`}).join(''):`<div class="panel empty">لا توجد تصويتات بعد.</div>`;
+    return `<div class="panel" style="padding:14px;display:grid;gap:8px"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b>${esc(p.q)}</b><span class="hpill">${p.open?'مفتوح · سري':p.reveal?'مغلق · النتيجة معلنة':'مغلق · سري'}</span></div>${pollResults(p,null)}
+    ${canWrite?`<div class="ed-actions"><button class="btn" data-act="ptoggle" data-id="${p.id}">${p.open?'إغلاق التصويت':'إعادة فتحه'}</button>${p.open?'':`<button class="btn" data-act="pshow" data-id="${p.id}">${p.reveal?'إخفاء النتيجة عن الطلاب':'إعلان النتيجة للطلاب'}</button>`}${ui.confirm==='p'+p.id?`<button class="btn danger" data-act="pdel" data-id="${p.id}">تأكيد الحذف</button>`:`<button class="btn danger" data-act="paskdel" data-id="${p.id}">حذف</button>`}</div>`:''}</div>`}).join(''):`<div class="panel empty">لا توجد تصويتات بعد.</div>`;
   return `${form}<h3 class="section-h">التصويتات</h3><div style="display:grid;gap:10px">${list}</div><p class="note">يظهر التصويت المفتوح أعلى صفحة الطلاب. وبعد إغلاقه تبقى نتيجته ظاهرة لهم، إلا إن أخفيتها.</p>`;
 }
 function reportCard(){
@@ -1047,8 +1051,8 @@ function scrapView(){
   let body='';
   // poll
   fanPolls().forEach(p=>{const mine=myVote(p.id),voted=mine!=null;
-    body+=ch('poll',esc(p.q),p.open&&!voted?'صوت واحد لكل جوال، وتظهر النتائج بعد التصويت':'',
-      (p.open&&!voted)?p.options.map((o,i)=>`<button class="sc-opt" data-act="vote" data-id="${p.id}" data-k="${i}">${esc(o)}</button>`).join(''):pollResults(p,mine))});
+    body+=ch('poll',esc(p.q),p.open&&!voted?'صوت واحد لكل جوال، والتصويت سري':'',
+      (p.open&&!voted)?p.options.map((o,i)=>`<button class="sc-opt" data-act="vote" data-id="${p.id}" data-k="${i}">${esc(o)}</button>`).join(''):fanResult(p,mine))});
   // newspaper
   const rr=reportRounds();
   if(rr.length){if(!ui.rday||!rr.includes(ui.rday))ui.rday=rr[rr.length-1];const r=S.reports[ui.rday];
@@ -1126,7 +1130,14 @@ addEventListener('resize',fitPoster);
 addEventListener('hashchange',()=>{if(!isLajna()&&canWrite){/* keep session */}render();if(isLajna()&&PIN)load().then(render)});
 
 function render(){
-  if(!isLajna()){document.body.classList.add('scrap');root.innerHTML=scrapView();tornEdges();return}
+  if(!isLajna()){
+    // نثبت القسم الذي يتعامل معه الطالب في مكانه على الشاشة حتى لا تقفز الصفحة بعد إعادة الرسم
+    let anc=ui.anc&&document.getElementById(ui.anc);ui.anc=null;
+    if(!anc)anc=[...root.querySelectorAll('[id^="sc-"]')].find(e=>e.getBoundingClientRect().bottom>70);
+    const id=anc&&anc.id,top=anc?anc.getBoundingClientRect().top:0;
+    document.body.classList.add('scrap');root.innerHTML=scrapView();tornEdges();
+    const el=id&&document.getElementById(id);if(el){const d=el.getBoundingClientRect().top-top;if(Math.abs(d)>1)window.scrollBy(0,d)}
+    return}
   document.body.classList.remove('scrap');
   const v={table:vTable,matches:vMatches,scorers:vScorers,squads:vSquads,challenges:vChallenges,reports:vReports,polls:vPolls,money:vMoney,posts:vPosts}[ui.tab]();
   root.innerHTML=hero()+tabs()+status()+v;
@@ -1230,6 +1241,7 @@ let tt;function toast(msg,kind){let el=document.getElementById('toast');if(!el){
 root.addEventListener('click',async ev=>{
   const b=ev.target.closest('[data-act]');if(!b||b.tagName==='INPUT'||b.tagName==='SELECT')return;
   const act=b.dataset.act,dr=ui.draft;
+  {const ch=b.closest('[id^="sc-"]');if(ch)ui.anc=ch.id}
   if(act==='login'){ui.login=true;render();setTimeout(()=>{const p=document.getElementById('pin');if(p)p.focus()},0);return}
   if(act==='logincancel'){ui.login=false;render();return}
   if(act==='logout'){logout();toast('خرجت من وضع اللجنة');return}
@@ -1322,14 +1334,14 @@ root.addEventListener('click',async ev=>{
   if(act==='rmore'){ui.rfull=true;render();return}
   if(act==='vote'){const id=b.dataset.id,k=+b.dataset.k;b.disabled=true;
     try{const {status:st,j}=await api({action:'vote',poll:id,option:k,voter:voterId()});
-      if(st===200||j.already){try{localStorage.setItem('ghiras-vote-'+id,String(st===200?k:(myVote(id)??k)))}catch(e){};if(j.votes)VOTES=j.votes;toast(st===200?'سُجّل صوتك، شكرًا لك':'صوّتَّ من قبل في هذا التصويت');render()}
+      if(st===200||j.already){try{localStorage.setItem('ghiras-vote-'+id,String(st===200?k:(myVote(id)??k)))}catch(e){};if(j.votes&&!FULL)VOTES=j.votes;toast(st===200?'سُجّل صوتك، شكرًا لك':'صوّتَّ من قبل في هذا التصويت');render()}
       else{toast(j.error||'تعذّر تسجيل الصوت','err');b.disabled=false;if(st===409)load().then(render)}}
     catch(e){toast('لا يوجد اتصال، حاول مرة أخرى','err');b.disabled=false}return}
   if(act==='padd'){const q=document.getElementById('pf-q').value.trim();const opts=document.getElementById('pf-o').value.split('\n').map(x=>x.trim()).filter(Boolean);
     if(!q){toast('اكتب سؤال التصويت','err');return}if(opts.length<2){toast('اكتب خيارين على الأقل، كل خيار في سطر','err');return}
-    S.polls.push({id:'p'+uid(),q,options:opts.slice(0,10),open:true,showResults:true,day:Math.max(1,lastDay())});render();await save('نُشر التصويت');return}
-  if(act==='ptoggle'){const p=S.polls.find(x=>x.id===b.dataset.id);if(p){p.open=!p.open;if(p.open)p.showResults=true}render();await save(p&&p.open?'فُتح التصويت':'أُغلق التصويت');return}
-  if(act==='pshow'){const p=S.polls.find(x=>x.id===b.dataset.id);if(p){if(p.open){p.open=false;p.showResults=false}else p.showResults=!p.showResults}render();await save('حُفظ');return}
+    S.polls.push({id:'p'+uid(),q,options:opts.slice(0,10),open:true,reveal:false,day:Math.max(1,lastDay())});render();await save('نُشر التصويت');return}
+  if(act==='ptoggle'){const p=S.polls.find(x=>x.id===b.dataset.id);if(p){p.open=!p.open;if(p.open)p.reveal=false}render();await save(p&&p.open?'فُتح التصويت':'أُغلق التصويت');return}
+  if(act==='pshow'){const p=S.polls.find(x=>x.id===b.dataset.id);if(p&&!p.open)p.reveal=!p.reveal;render();await save(p&&p.reveal?'أُعلنت النتيجة للطلاب':'أُخفيت النتيجة');return}
   if(act==='paskdel'){ui.confirm='p'+b.dataset.id;render();return}
   if(act==='pdel'){S.polls=S.polls.filter(x=>x.id!==b.dataset.id);ui.confirm=null;render();await save('حُذف التصويت');return}
   if(act==='rcopy'){const t=(S.reports[ui.rday]||{}).text||'';try{await navigator.clipboard.writeText(t);toast('نُسخ التقرير، الصقه في الواتساب')}catch(e){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('نُسخ التقرير، الصقه في الواتساب')}catch(_){toast('تعذّر النسخ، حدّد النص وانسخه يدويًا','err')}ta.remove()}return}
