@@ -577,6 +577,25 @@ body.scrap #root{max-width:none;padding:0}
 .status.warnbox{background:var(--soft);border:1px solid var(--warn);border-radius:10px;padding:8px 12px;color:var(--ink)}
 .status.dirty{position:sticky;top:76px;z-index:30;box-shadow:0 6px 18px rgba(0,0,0,.25)}
 .lj .status.dirty{border:2px solid var(--bad)}
+.nw-tag{display:inline-block;color:#fff;font-family:var(--display);font-weight:700;font-size:11.5px;padding:1px 8px;line-height:1.6;vertical-align:middle}
+.nw-list{display:grid}
+.nw-item{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.nw-item:last-child{border-bottom:0}
+.nw-item .note{margin-top:2px}
+.scrap .sc-news{display:grid;gap:10px}
+.scrap .sc-nw{background:rgba(255,255,255,.65);padding:10px 12px;border-inline-start:4px solid var(--leaf)}
+.scrap .sc-nw-top{display:flex;align-items:center;gap:8px}
+.scrap .sc-nw-top .when{font-size:12.5px;color:var(--muted);font-weight:600}
+.scrap .sc-nw-top .sc-ico{margin-inline-start:auto}
+.scrap .sc-nw h3{font-family:var(--display);font-weight:700;font-size:18px;line-height:1.45;margin:4px 0 2px}
+.scrap .sc-nw p{margin:0;font-size:14.5px;line-height:1.75}
+.np-news{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.np-news li{display:grid;gap:2px;padding-bottom:8px;border-bottom:1px solid #ecebe4}
+.np-news li:last-child{border-bottom:0;padding-bottom:0}
+.np-news li .nw-tag{justify-self:start}
+.np-news b{font-family:var(--display);font-size:15px;line-height:1.4}
+.np-news span:not(.nw-tag){font-size:13.5px;color:#3a3d3a;line-height:1.6}
+.pn-body{flex:1;display:flex;align-items:center;font-size:27px;line-height:1.9;font-weight:500;color:#1d2a22;padding-block:10px 20px}
 .status.hist{display:grid;gap:8px}
 .hist-list{list-style:none;margin:0;padding:0;display:grid;gap:6px;max-height:340px;overflow:auto}
 .hist-list li{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px dashed var(--line);padding-bottom:6px}
@@ -641,6 +660,8 @@ const noun=(n,k)=>{const f=NOUNS[k],r=n%100;return n===1?f[0]:n===2?f[1]:(r>=3&&
 const count=(n,k)=>n===1?NOUNS[k][0]+' '+NOUNS[k][4]:n===2?NOUNS[k][1]:ar(n)+' '+noun(n,k);
 // بعد حرف جر (بـ، في، بفارق): المثنى بالياء، و«أحد عشر هدفٍ» بلا تنوين النصب
 const countG=(n,k)=>n===2?NOUNS[k][5]:n>10&&noun(n,k)===NOUNS[k][3]?ar(n)+' '+NOUNS[k][6]:count(n,k);
+// باء الجر: «بـ٦ نقاط» مع الرقم، و«بنقطتين» مع الكلمة
+const bi=(n,k)=>{const t=countG(n,k);return (/^[٠-٩]/.test(t)?'بـ':'ب')+t};
 const money=v=>ar(Math.round(v).toLocaleString('en-US')).replace(/,/g,'٬');
 const signed=v=>(v>0?'+':v<0?'−':'')+ar(Math.abs(v));
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -651,7 +672,7 @@ const uid=()=>Math.random().toString(36).slice(2,9);
 const root=document.getElementById('root');
 
 function ensure(){
-  S.dayDates=S.dayDates||{};S.transfers=S.transfers||[];S.awards=S.awards||[];S.challenges=S.challenges||[];S.floaters=S.floaters||[];S.lineups=S.lineups||{};S.matches=S.matches||[];S.reports=S.reports||{};S.bonuses=S.bonuses||[];S.polls=S.polls||[];
+  S.dayDates=S.dayDates||{};S.transfers=S.transfers||[];S.awards=S.awards||[];S.challenges=S.challenges||[];S.floaters=S.floaters||[];S.lineups=S.lineups||{};S.matches=S.matches||[];S.reports=S.reports||{};S.bonuses=S.bonuses||[];S.polls=S.polls||[];S.news=S.news||[];
   if(!S.loanLog){S.loanLog=[];S.matches.forEach(m=>{(m.loans||[]).forEach(l=>S.loanLog.push({id:uid(),day:m.day,slot:m.slot,p:l.p,from:l.from,to:l.to,fee:LOAN_FEE,payTo:'lender',note:''}));delete m.loans})}
   S.meta=S.meta||{};
   if(!S.fixtures||!S.fixtures.length)S.fixtures=roundRobin(S.teams.map(t=>t.id),+S.meta.days||6,+S.meta.perDay||Math.floor(S.teams.length/2));
@@ -757,7 +778,7 @@ function hero(){
   ${done?`<div class="facts"><div><span>المتصدر:</span> ${esc(T(lead.id).name)} (${count(lead.pts,'point')})</div><div><span>الهداف:</span> ${esc(top?top.name:'—')} (${ar(top?top.g:0)})</div><div><span>الأهداف:</span> ${count(goals,'goal')} في ${countG(done,'match')}</div></div>`:''}
   </header>`;
 }
-const TABS=[['table','الترتيب'],['matches','المباريات'],['scorers','الهدافون'],['squads','التشكيلات'],['challenges','التحديات'],['polls','التصويت'],['reports','التقارير'],['money','الخزينة والسوق'],['posts','المنشورات']];
+const TABS=[['table','الترتيب'],['matches','المباريات'],['scorers','الهدافون'],['squads','التشكيلات'],['challenges','التحديات'],['polls','التصويت'],['news','الأخبار'],['reports','التقارير'],['money','الخزينة والسوق'],['posts','المنشورات']];
 function tabs(){return `<nav class="tabs" role="tablist">${TABS.map(([k,l])=>`<button class="tab" role="tab" data-act="tab" data-k="${k}" aria-selected="${ui.tab===k}">${l}</button>`).join('')}</nav>`}
 function status(){
   if(!isLajna())return !LOADED?`<div class="status">جارٍ تحميل آخر النتائج…</div>`:'';
@@ -1090,11 +1111,14 @@ function newspaper(text,d){
   const plain=A.filter(a=>a.type==='plain');
   const brk=A.filter(a=>a.type==='breaking');
   const t=table(d);
-  const leadTitle=lead?lead.h.replace(/^عنوان الجولة\s*[:：]\s*/,''):'تقرير '+dayLabel(d);
+  const rn=newsOf(d),top=!lead&&!String(text||'').trim()&&rn.length?rn[0]:null;
+  const leadTitle=lead?lead.h.replace(/^عنوان الجولة\s*[:：]\s*/,''):top?top.title:'تقرير '+dayLabel(d);
   const mast=`<header class="np-mast"><div class="np-mast-row"><span>العدد ${ar(d)}</span><span>${S.dayDates[d]?esc(S.dayDates[d]):''}</span></div>
     <div class="np-name"><img src="${LOGO}" alt="">جريدة غراس</div>
     <div class="np-mast-row"><span>تصدر بعد كل جولة</span><span>تنظيم فريق غراس التطوعي</span></div></header>`;
-  const front=`<div class="np-front"><div class="np-kicker">${dayLabel(d)}</div><h3 class="np-head">${inl(leadTitle)}</h3>${lead?`<div class="np-lede">${npBody(lead.body)}</div>`:''}</div>`;
+  const front=`<div class="np-front"><div class="np-kicker">${dayLabel(d)}</div><h3 class="np-head">${inl(leadTitle)}</h3>${lead?`<div class="np-lede">${npBody(lead.body)}</div>`:top?`<div class="np-lede"><p>${esc(top.body)}</p></div>`:''}</div>`;
+  const rest=rn.filter(n=>n!==top);
+  const newsHtml=rest.length?npBox('أخبار الجولة',`<ul class="np-news">${rest.map(n=>`<li><span class="nw-tag" style="background:${newsTag(n.tag)[1]}">${newsTag(n.tag)[0]}</span> <b>${esc(n.title)}</b>${n.body?`<span>${esc(n.body)}</span>`:''}</li>`).join('')}</ul>`,'np-newsbox'):'';
   const tbl=npBox('الترتيب بعد '+dayLabel(d),`<table class="np-tbl"><tbody>${t.map((r,i)=>`<tr${i===0?' class="top"':''}><td>${ar(i+1)}</td><td class="n">${esc(T(r.id).name)}</td><td>${signed(r.gf-r.ga)}</td><td class="p">${ar(r.pts)}</td></tr>`).join('')}</tbody></table>`,'np-standings');
   const teamArts=teams.map(a=>{const [k,...rest]=a.h.split('|');return `<article class="np-art"><div class="np-kicker">${esc(k.trim())}</div><h4 class="np-art-h">${esc(rest.join('|').trim())}</h4>${npBody(a.body)}</article>`}).join('');
   const starsHtml=stars?npBox(stars.h,`<ol class="np-stars">${stars.body.map(L=>{const m=clean(L).match(/^\*([^*]+)\*\s*(.*)$/);return m?`<li><b>${esc(m[1].replace(/[:：]\s*$/,''))}</b><span>${inl(m[2])}</span></li>`:`<li>${inl(clean(L))}</li>`}).join('')}</ol>`,'np-dark'):'';
@@ -1107,7 +1131,7 @@ function newspaper(text,d){
   const brkHtml=brk.map(a=>`<section class="np-break"><div class="np-break-tag">عاجل</div><h4>${inl(a.h.replace(/^عاجل\s*[:：]\s*/,''))}</h4>${npBody(a.body.map(L=>L.replace(/^💡\s*/,'')))}</section>`).join('');
   return `<div class="np">${mast}${brkHtml}${front}
     <div class="np-grid"><div class="np-main"><div class="np-cols">${teamArts}</div>${plainArts}${quoteHtml}</div>
-    <div class="np-side">${tbl}${starsHtml}${numsHtml}</div></div>
+    <div class="np-side">${newsHtml}${tbl}${starsHtml}${numsHtml}</div></div>
     <div class="np-bottom">${fxHtml}${pollHtml}</div>
     <footer class="np-foot">جريدة غراس · ${dayLabel(d)} · تنظيم فريق غراس التطوعي</footer></div>`;
 }
@@ -1142,9 +1166,9 @@ function vPolls(){
   return `${form}<h3 class="section-h">التصويتات</h3><div style="display:grid;gap:10px">${list}</div><p class="note">يظهر التصويت المفتوح أعلى صفحة الطلاب. وبعد إغلاقه تبقى نتيجته ظاهرة لهم، إلا إن أخفيتها.</p>`;
 }
 function reportCard(){
-  const rr=reportRounds();if(!rr.length)return '';
+  const rr=paperRounds();if(!rr.length)return '';
   if(!ui.rday||!rr.includes(ui.rday))ui.rday=rr[rr.length-1];
-  const r=S.reports[ui.rday];
+  const r=S.reports[ui.rday]||{text:''};
   const chips=rr.length>1?`<div class="fan-chips">${rr.map(d=>`<button data-act="rday" data-k="${d}" aria-pressed="${d===ui.rday}">${dayLabel(d).replace('الجولة ','')}</button>`).join('')}</div>`:'';
   return `<section class="fan-sec rp" id="sec-report"><div class="fan-h"><h2>جريدة الجولة</h2><button class="btn share" data-act="rcopy"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>نسخ للواتساب</button></div>${chips}
   <div class="np-wrap${ui.rfull?' open':''}">${newspaper(r.text,ui.rday)}</div>
@@ -1157,6 +1181,72 @@ function vReports(){
     <label class="field">نص التقرير<textarea id="rp-text" rows="18" ${canWrite?'':'readonly'} placeholder="اكتب التقرير هنا. النص بين نجمتين *هكذا* يظهر عريضًا، والسطر المكوّن من ━━━━ يظهر خطًّا فاصلًا." style="font:inherit;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--surface);color:var(--ink);resize:vertical;line-height:1.7">${esc(r.text||'')}</textarea></label>
     ${canWrite?`<div class="ed-actions"><button class="btn primary" data-act="rpsave">نشر التقرير</button>${r.text?(ui.confirm==='rp'?`<button class="btn danger" data-act="rpdel">تأكيد حذف التقرير</button>`:`<button class="btn danger" data-act="rpaskdel">حذف التقرير</button>`):''}</div>`:''}
     <p class="note">يظهر التقرير للطلاب أعلى صفحتهم، مع زر لنسخه إلى الواتساب. ${r.updated?'آخر تحديث: '+esc(r.updated):''}</p></div>`;
+}
+/* ---------- daily news: short items that also collect into the round's newspaper ---------- */
+const NEWS_TAGS={breaking:['عاجل','#c0392b'],result:['نتائج','#2f7d3a'],transfer:['انتقالات','#2f7fb8'],star:['نجم','#c8961e'],numbers:['أرقام','#6b4fa0'],challenge:['تحديات','#d4652a'],interview:['مقابلة','#1d7a74'],next:['ترقّب','#1d2a22']};
+const newsTag=k=>NEWS_TAGS[k]||NEWS_TAGS.breaking;
+const newsSorted=()=>(S.news||[]).slice().sort((a,b)=>b.at-a.at);
+const newsOf=d=>newsSorted().filter(n=>n.day===d);
+// أعداد الجريدة: كل جولة لها تقرير أو أخبار
+const paperRounds=()=>[...new Set([...reportRounds(),...(S.news||[]).map(n=>n.day)])].sort((a,b)=>a-b);
+const newsWhen=t=>{const d=new Date(t),now=new Date(),day=86400000,start=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();
+  if(t>=start)return 'اليوم';if(t>=start-day)return 'أمس';
+  try{return d.toLocaleDateString('ar-SA',{weekday:'long',day:'numeric',month:'long'})}catch(e){return ''}};
+const newsWords=s=>String(s||'').trim().split(/\s+/).filter(Boolean).length;
+const newsText=n=>`*${n.title}*\n${n.body}`.trim();
+// لام الجر: «للأسود» لا «لـالأسود»
+const lam=n=>/^ال/.test(n)?'لل'+n.slice(2):'ل'+n;
+const BIGWIN=['','','','بثلاثية','برباعية','بخماسية','بسداسية','بسباعية'];
+// صياغات جاهزة من بيانات الدوري، تعدّلها اللجنة قبل النشر
+function newsSuggestions(){
+  const out=[],ld=lastDay(),nd=nextRound();
+  const plain=(m,t)=>{const c={};(m.goals||[]).filter(g=>g.t===t).forEach(g=>{const k=canon(g.p);c[k]=(c[k]||0)+1});return Object.entries(c).map(([p,n])=>p+(n>1?' ('+ar(n)+')':'')).join('، ')};
+  if(ld)played().filter(m=>m.day===ld).forEach(m=>{
+    const A=T(m.a).name,B=T(m.b).name;let title,body;
+    if(m.ga===m.gb){title=`تعادل ${A} و${B} ${ar(m.ga)}-${ar(m.gb)}`;
+      const s=[plain(m,m.a)&&`${lam(A)}: ${plain(m,m.a)}`,plain(m,m.b)&&`${lam(B)}: ${plain(m,m.b)}`].filter(Boolean).join('، و');
+      body=m.ga?`سجّل ${s}.`:'مباراة متكافئة لم تهتز فيها الشباك.'}
+    else{const w=m.ga>m.gb?m.a:m.b,l=w===m.a?m.b:m.a,gw=Math.max(m.ga,m.gb),gl=Math.min(m.ga,m.gb),W=T(w).name,L=T(l).name;
+      title=gw-gl>=3?`${W} يكتسح ${L} ${BIGWIN[gw]&&gl===0?BIGWIN[gw]+' نظيفة':'بنتيجة '+ar(gw)+'-'+ar(gl)}`:gw-gl===1?`${W} يتجاوز ${L} بصعوبة ${ar(gw)}-${ar(gl)}`:`${W} يفوز على ${L} ${ar(gw)}-${ar(gl)}`;
+      body=plain(m,w)?`سجّل ${lam(W)}: ${plain(m,w)}${plain(m,l)?`، و${lam(L)}: ${plain(m,l)}`:''}.`:''}
+    out.push({tag:'result',day:ld,title,body});
+    const c={};(m.goals||[]).forEach(g=>{const k=canon(g.p);c[k]=(c[k]||0)+1});
+    Object.entries(c).filter(([,n])=>n>=3).forEach(([p,n])=>out.push({tag:'star',day:ld,title:`${n===3?'هاتريك':ar(n)+' أهداف'} ${lam(p)}`,body:`${p} يسجّل ${count(n,'goal')} في مباراة ${A} و${B}.`}));
+  });
+  if(ld){const tb=table(),t1=tb[0],t2=tb[1];
+    out.push({tag:'numbers',day:ld,title:t1.pts===t2.pts?`${T(t1.id).name} و${T(t2.id).name} يتقاسمان الصدارة`:`${T(t1.id).name} يعزّز صدارته`,
+      body:t1.pts===t2.pts?`كلاهما ${bi(t1.pts,'point')} بعد ${dayLabel(ld)}.`:`${bi(t1.pts,'point')}، وبفارق ${countG(t1.pts-t2.pts,'point')} عن ${T(t2.id).name} بعد ${dayLabel(ld)}.`});
+    const sc=scorers();if(sc[0])out.push({tag:'star',day:ld,title:`${sc[0].name} على رأس الهدافين`,body:`رصيده ${count(sc[0].g,'goal')}${sc[1]&&sc[1].g<sc[0].g?`، يلاحقه ${sc[1].name} ${bi(sc[1].g,'goal')}`:''}.`})}
+  if(nd){const tb=table(),t1=tb[0],t2=tb[1],f=S.fixtures.find(f=>f.day===nd&&[f.a,f.b].includes(t1.id)&&[f.a,f.b].includes(t2.id));
+    const list=S.fixtures.filter(f=>f.day===nd).sort((a,b)=>a.slot-b.slot).map(f=>`${T(f.a).name} × ${T(f.b).name}`).join('، ');
+    out.push({tag:'next',day:nd,title:f&&ld?`قمة ${T(f.a).name} و${T(f.b).name} في ${dayLabel(nd)}`:`${dayLabel(nd)}: من يبتسم أخيرًا؟`,body:`${S.dayDates[nd]?S.dayDates[nd]+'. ':''}المباريات: ${list}.`})}
+  if(canWrite)(S.transfers||[]).slice(-2).reverse().forEach(x=>out.push({tag:'transfer',day:x.day||Math.max(1,ld),title:`${x.player} ينتقل من ${T(x.from).name} إلى ${T(x.to).name}`,body:x.swap?`وفي المقابل ينتقل ${x.swap} إلى ${T(x.from).name}.`:'صفقة جديدة من مزاد الدوري.'}));
+  const used=new Set((S.news||[]).map(n=>n.title));
+  return out.filter(s=>!used.has(s.title));
+}
+function vNews(){
+  const dr=ui.nDraft||(ui.nDraft={id:null,tag:'breaking',day:nextRound()||Math.max(1,lastDay()),title:'',body:''});
+  const sug=canWrite?newsSuggestions():[];
+  const wc=newsWords(dr.body);
+  const form=canWrite?`<h3 class="section-h" style="margin-top:0">${dr.id?'تعديل الخبر':'خبر جديد'}</h3><div class="panel" style="padding:14px;display:grid;gap:10px">
+    <div class="form-grid" style="padding:0">
+      <label class="field">الوسم<select id="nw-tag" data-act="nf" data-f="tag">${Object.entries(NEWS_TAGS).map(([k,[l]])=>`<option value="${k}"${k===dr.tag?' selected':''}>${l}</option>`).join('')}</select></label>
+      <label class="field">يُجمع في جريدة<select id="nw-day" data-act="nf" data-f="day">${DAYS().map(d=>`<option value="${d}"${d===+dr.day?' selected':''}>${dayLabel(d)}</option>`).join('')}</select></label></div>
+    <label class="field">العنوان<input id="nw-title" type="text" maxlength="90" data-act="nf" data-f="title" value="${esc(dr.title)}" placeholder="عنوان قصير يشدّ القارئ"></label>
+    <label class="field">الخبر<textarea id="nw-body" rows="4" maxlength="500" data-act="nf" data-f="body" placeholder="سطران أو ثلاثة، والأفضل ألا يزيد على ٤٠ كلمة" style="font:inherit;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--surface);color:var(--ink);resize:vertical;line-height:1.7">${esc(dr.body)}</textarea></label>
+    <div class="note" id="nw-count">${ar(wc)} كلمة${wc>40?' — أطول من المقترح، فاختصره إن أمكن':''}</div>
+    <div class="ed-actions"><button class="btn primary" data-act="nsave">${dr.id?'حفظ التعديل':'نشر الخبر'}</button>${dr.id||dr.title||dr.body?`<button class="btn" data-act="ncancel">${dr.id?'إلغاء التعديل':'تفريغ'}</button>`:''}</div>
+    <p class="note" style="margin:0">يظهر الخبر للطلاب فورًا أعلى صفحتهم مع صورة جاهزة للواتساب، ويُجمع تلقائيًا في جريدة الجولة المختارة.</p></div>`:'';
+  const sugHtml=sug.length?`<h3 class="section-h">مقترحات من نتائج الدوري</h3><div class="panel nw-list">${sug.map((s,i)=>`<div class="nw-item"><div><span class="nw-tag" style="background:${newsTag(s.tag)[1]}">${newsTag(s.tag)[0]}</span> <b>${esc(s.title)}</b><div class="note">${esc(s.body)}</div></div><button class="btn" data-act="nsugg" data-k="${i}">استعمل</button></div>`).join('')}</div>`:'';
+  const list=newsSorted();
+  const listHtml=`<h3 class="section-h">الأخبار المنشورة</h3>${list.length?`<div class="panel nw-list">${list.map(n=>`<div class="nw-item"><div><span class="nw-tag" style="background:${newsTag(n.tag)[1]}">${newsTag(n.tag)[0]}</span> <span class="note">${esc(newsWhen(n.at))} · ${dayLabel(n.day)}</span><div><b>${esc(n.title)}</b></div><div class="note">${esc(n.body)}</div></div>
+    ${canWrite?`<div class="ed-actions"><button class="btn link" data-act="ncopy" data-id="${n.id}">نسخ</button><button class="btn link" data-act="nedit" data-id="${n.id}">تعديل</button>${ui.confirm==='n'+n.id?`<button class="btn danger" data-act="ndel" data-id="${n.id}">تأكيد الحذف</button>`:`<button class="btn link" data-act="naskdel" data-id="${n.id}">حذف</button>`}</div>`:''}</div>`).join('')}</div>`:'<div class="panel empty">لم يُنشر أي خبر بعد.</div>'}`;
+  return form+sugHtml+listHtml;
+}
+// صورة الخبر للواتساب
+function pNews(n){
+  const [l]=newsTag(n.tag);
+  return posterShell(esc(n.title),'',`<div class="pn-body">${esc(n.body)}</div>`,esc(newsWhen(n.at)==='اليوم'||newsWhen(n.at)==='أمس'?dayLabel(n.day):newsWhen(n.at)),l);
 }
 /* ---------- students' page: season scrapbook ---------- */
 const SCRAP_ICONS={ball:'<circle cx="23" cy="23" r="19" fill="#fff" stroke="#1d2a22" stroke-width="3"/><path d="M23 12l8 6-3 10h-10l-3-10z" fill="#1d2a22"/><path d="M23 4v8M31 18l10-3M28 28l6 9M18 28l-6 9M15 18L5 15" stroke="#1d2a22" stroke-width="2.5"/>',
@@ -1182,8 +1272,8 @@ function scrapView(){
   <section class="sc-hero">${TROPHY}
     ${nd?`<div class="kicker">الجولة ${N2(nd)}${S.dayDates[nd]?' · '+esc(S.dayDates[nd]):''}</div>`:`<div class="kicker">اكتملت جولات الدوري</div>`}
     <h1>${big?`قمة ${esc(T(big.a).name)} و${esc(T(big.b).name)}`:nd?'الجولة '+N2(nd):'بطل دوري غراس: '+esc(T(t1.id).name)}</h1>
-    <p>${ld?(t1.pts===t2.pts?`${esc(T(t1.id).name)} و${esc(T(t2.id).name)} متساويان بـ${countG(t1.pts,'point')}${(t1.gf-t1.ga)-(t2.gf-t2.ga)===1?'، والفارق هدف واحد':''}.`:`${esc(T(t1.id).name)} يتصدر بـ${countG(t1.pts,'point')}، بفارق ${countG(t1.pts-t2.pts,'point')} عن ${esc(T(t2.id).name)}.`):'الدوري على وشك الانطلاق.'}</p>
-    <div class="ctas">${hpoll?`<a class="ybtn" href="#sc-poll" data-act="scjump" data-k="poll">🗳️ ${esc(hpoll.q.replace(/[؟?]$/,''))}</a>`:''}${reportRounds().length?`<a class="gbtn" href="#sc-paper" data-act="scjump" data-k="paper">اقرأ الجريدة</a>`:''}</div></section>`;
+    <p>${ld?(t1.pts===t2.pts?`${esc(T(t1.id).name)} و${esc(T(t2.id).name)} متساويان ${bi(t1.pts,'point')}${(t1.gf-t1.ga)-(t2.gf-t2.ga)===1?'، والفارق هدف واحد':''}.`:`${esc(T(t1.id).name)} يتصدر ${bi(t1.pts,'point')}، بفارق ${countG(t1.pts-t2.pts,'point')} عن ${esc(T(t2.id).name)}.`):'الدوري على وشك الانطلاق.'}</p>
+    <div class="ctas">${hpoll?`<a class="ybtn" href="#sc-poll" data-act="scjump" data-k="poll">🗳️ ${esc(hpoll.q.replace(/[؟?]$/,''))}</a>`:''}${(S.news||[]).length?`<a class="gbtn" href="#sc-news" data-act="scjump" data-k="news">آخر الأخبار</a>`:''}${paperRounds().length?`<a class="gbtn" href="#sc-paper" data-act="scjump" data-k="paper">اقرأ الجريدة</a>`:''}</div></section>`;
   /* stats */
   if(ld){
     const draws=S.matches.filter(m=>m.ga===m.gb).length,loans=(S.loanLog||[]).length;
@@ -1199,9 +1289,12 @@ function scrapView(){
   fanPolls().forEach(p=>{const mine=myVote(p.id),voted=mine!=null;
     body+=ch('poll',esc(p.q),p.open&&!voted?'صوت واحد لكل جوال، والتصويت سري':'',
       (p.open&&!voted)?p.options.map((o,i)=>`<button class="sc-opt" data-act="vote" data-id="${p.id}" data-k="${i}">${esc(o)}</button>`).join(''):fanResult(p,mine))});
+  // daily news
+  const allNews=newsSorted(),shownNews=ui.nall?allNews:allNews.slice(0,4);
+  if(allNews.length)body+=ch('news','آخر الأخبار','خبر قصير كل يوم، وتُجمع الأخبار في جريدة الجولة',`<div class="sc-news">${shownNews.map(n=>`<article class="sc-nw"><div class="sc-nw-top"><span class="nw-tag" style="background:${newsTag(n.tag)[1]}">${newsTag(n.tag)[0]}</span><span class="when">${esc(newsWhen(n.at))}</span><button class="sc-ico" data-act="fanpng" data-k="news-${n.id}" aria-label="مشاركة صورة الخبر"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg></button></div><h3>${esc(n.title)}</h3>${n.body?`<p>${esc(n.body)}</p>`:''}</article>`).join('')}</div>${allNews.length>4?`<div class="sc-row"><button class="ybtn" data-act="nall">${ui.nall?'عرض أحدث الأخبار فقط':'كل الأخبار ('+ar(allNews.length)+')'}</button></div>`:''}`);
   // newspaper
-  const rr=reportRounds();
-  if(rr.length){if(!ui.rday||!rr.includes(ui.rday))ui.rday=rr[rr.length-1];const r=S.reports[ui.rday];
+  const rr=paperRounds();
+  if(rr.length){if(!ui.rday||!rr.includes(ui.rday))ui.rday=rr[rr.length-1];const r=S.reports[ui.rday]||{text:''};
     const chips=rr.length>1?`<div class="sc-chips">${rr.map(d=>`<button data-act="rday" data-k="${d}" aria-pressed="${d===ui.rday}">العدد ${ar(d)}</button>`).join('')}</div>`:'';
     body+=ch('paper','جريدة غراس','',`${chips}<div class="np-wrap${ui.rfull?' open':''}">${newspaper(r.text,ui.rday)}</div><div class="sc-row">${ui.rfull?'':`<button class="ybtn" data-act="rmore">اقرأ العدد كاملًا</button>`}<button class="gbtn dark" data-act="rcopy">نسخ للواتساب</button></div>`,true)}
   // standings
@@ -1230,6 +1323,7 @@ function scrapView(){
   if(nd)stage+=withPid('next',()=>pFixtures(nd));
   if(ld){ui.pday=ui.sday;stage+=withPid('results',pResults);ui.pday=Math.max(1,ld)}
   stage+=withPid('scorers',pScorers)+withPid('lineup-'+ui.pteam,pLineup)+withPid('challenges',pChallenges);
+  shownNews.forEach(n=>{stage+=withPid('news-'+n.id,()=>pNews(n))});
   ui.pday=keep;
   html+=body+idx+`<footer class="sc-foot sheet">${tag(0)}<div class="paper kraft"><img src="${LOGO}" alt="" width="90" height="86"><b>دوري غراس</b><p>غِراسٌ يُثمر، وتنافسٌ يُبهج</p><p>تنظيم فريق غراس التطوعي · تتحدّث الصفحة تلقائيًا</p></div></footer></main>
   <div class="sc-stage" aria-hidden="true"><div class="p-scale">${stage}</div></div>`;
@@ -1246,7 +1340,7 @@ function fanView(){
   const keep=ui.pday;
   const head=`<header class="fan-top"><span class="brand"><img src="${LOGO}" alt="شعار غراس" width="52" height="50"><span><h1>دوري غراس</h1><small>تنظيم فريق غراس التطوعي</small></span></span><span class="hpill">${ld?dayLabel(ld):'قبل الانطلاق'}</span></header>
   ${ld?`<div class="fan-facts"><div><small>المتصدر</small><b>${esc(T(lead.id).name)}</b><span class="num">${count(lead.pts,'point')}</span></div><div><small>الهداف</small><b>${esc(sc[0]?sc[0].name:'—')}</b><span class="num">${count(sc[0]?sc[0].g:0,'goal')}</span></div><div><small>الجولة القادمة</small><b>${nd?dayLabel(nd).replace('الجولة ',''):'—'}</b><span>${nd&&S.dayDates[nd]?esc(S.dayDates[nd]):'من '+(nDays()===1?'جولة واحدة':nDays()===2?'جولتين':ar(nDays())+' '+(nDays()<=10?'جولات':'جولة'))}</span></div></div>`:''}
-  <nav class="fan-nav" aria-label="أقسام الصفحة">${SECTIONS.filter(([k])=>k!=='next'||nd).filter(([k])=>k!=='results'||ld).filter(([k])=>k!=='report'||reportRounds().length).filter(([k])=>k!=='poll'||fanPolls().length).map(([k,l])=>`<a href="#sec-${k}" data-act="jump" data-k="${k}">${l}</a>`).join('')}</nav>`;
+  <nav class="fan-nav" aria-label="أقسام الصفحة">${SECTIONS.filter(([k])=>k!=='next'||nd).filter(([k])=>k!=='results'||ld).filter(([k])=>k!=='report'||paperRounds().length).filter(([k])=>k!=='poll'||fanPolls().length).map(([k,l])=>`<a href="#sec-${k}" data-act="jump" data-k="${k}">${l}</a>`).join('')}</nav>`;
   let html='';
   ui.pday=Math.max(1,ld);
   html+=pollCards();
@@ -1286,7 +1380,7 @@ function render(){
     return}
   document.body.classList.add('scrap','lj');
   const y=window.scrollY;
-  const v={table:vTable,matches:vMatches,scorers:vScorers,squads:vSquads,challenges:vChallenges,reports:vReports,polls:vPolls,money:vMoney,posts:vPosts}[ui.tab]();
+  const v={table:vTable,matches:vMatches,scorers:vScorers,squads:vSquads,challenges:vChallenges,reports:vReports,news:vNews,polls:vPolls,money:vMoney,posts:vPosts}[ui.tab]();
   const top=`<header class="sc-top"><div class="row"><a class="sc-logo" href="#lajna"><img src="${LOGO}" alt="شعار غراس" width="44" height="42"><span>دوري غراس<small>${canWrite?'وضع اللجنة':'صفحة اللجنة'}</small></span></a>${canWrite?`<button class="gbtn dark lj-out" data-act="logout">خروج</button>`:''}</div></header>`;
   root.innerHTML=top+`<div class="sc-wrap lj-wrap"><div class="sheet lj-hero"><span class="tape"></span><div class="paper">${hero()}</div></div>${tabs()}${status()}<div class="sheet lj-view"><span class="tape r"></span><span class="tape g"></span><div class="paper">${v}</div></div></div>`;
   tornEdges();
@@ -1400,6 +1494,18 @@ root.addEventListener('click',async ev=>{
   if(act==='logincancel'){ui.login=false;render();return}
   if(act==='logout'){logout();toast('خرجت من وضع اللجنة');return}
   if(act==='retrysave'){await save(ui.dirty);return}
+  if(act==='nall'){ui.nall=!ui.nall;render();return}
+  if(act==='nsugg'){const sg=newsSuggestions()[+b.dataset.k];if(sg){ui.nDraft={id:null,...sg};render();const t=document.getElementById('nw-title');if(t){t.scrollIntoView({block:'center'});t.focus()}}return}
+  if(act==='ncancel'){ui.nDraft=null;render();return}
+  if(act==='nedit'){const n=S.news.find(x=>x.id===b.dataset.id);if(n){ui.nDraft={...n};ui.confirm=null;render();const t=document.getElementById('nw-title');if(t){t.scrollIntoView({block:'center'});t.focus()}}return}
+  if(act==='naskdel'){ui.confirm='n'+b.dataset.id;render();return}
+  if(act==='ndel'){S.news=S.news.filter(x=>x.id!==b.dataset.id);ui.confirm=null;if(ui.nDraft&&ui.nDraft.id===b.dataset.id)ui.nDraft=null;render();await save('حُذف الخبر');return}
+  if(act==='ncopy'){const n=S.news.find(x=>x.id===b.dataset.id);if(!n)return;try{await navigator.clipboard.writeText(newsText(n));toast('نُسخ الخبر، الصقه في الواتساب')}catch(e){toast('تعذّر النسخ','err')}return}
+  if(act==='nsave'){const dr=ui.nDraft||{};const title=String(dr.title||'').trim(),body=String(dr.body||'').trim();
+    if(!title){toast('اكتب عنوان الخبر','err');return}
+    const rec={tag:NEWS_TAGS[dr.tag]?dr.tag:'breaking',day:+dr.day||1,title:title.slice(0,90),body:body.slice(0,500)};
+    if(dr.id){const n=S.news.find(x=>x.id===dr.id);if(n)Object.assign(n,rec)}else S.news.push({id:'n'+uid(),at:Date.now(),...rec});
+    const was=dr.id;ui.nDraft=null;render();await save(was?'حُفظ تعديل الخبر':'نُشر الخبر');return}
   if(act==='hist'){if(ui.hist){ui.hist=null;render();return}ui.hist='loading';render();
     const {status:st,j}=await api({action:'history',token:TOKEN}).catch(()=>({status:0,j:{}}));
     if(st===401){sessionEnded();return}
@@ -1511,7 +1617,7 @@ root.addEventListener('click',async ev=>{
   if(act==='pshow'){const p=S.polls.find(x=>x.id===b.dataset.id);if(p&&!p.open)p.reveal=!p.reveal;render();await save(p&&p.reveal?'أُعلنت النتيجة للطلاب':'أُخفيت النتيجة');return}
   if(act==='paskdel'){ui.confirm='p'+b.dataset.id;render();return}
   if(act==='pdel'){S.polls=S.polls.filter(x=>x.id!==b.dataset.id);ui.confirm=null;render();await save('حُذف التصويت');return}
-  if(act==='rcopy'){const t=(S.reports[ui.rday]||{}).text||'';try{await navigator.clipboard.writeText(t);toast('نُسخ التقرير، الصقه في الواتساب')}catch(e){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('نُسخ التقرير، الصقه في الواتساب')}catch(_){toast('تعذّر النسخ، حدّد النص وانسخه يدويًا','err')}ta.remove()}return}
+  if(act==='rcopy'){const rn=newsOf(ui.rday);const t=[((S.reports[ui.rday]||{}).text||'').trim(),rn.length?'*أخبار '+dayLabel(ui.rday)+'*\n\n'+rn.map(newsText).join('\n\n'):''].filter(Boolean).join('\n\n━━━━━━━━\n\n');try{await navigator.clipboard.writeText(t);toast('نُسخ التقرير، الصقه في الواتساب')}catch(e){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('نُسخ التقرير، الصقه في الواتساب')}catch(_){toast('تعذّر النسخ، حدّد النص وانسخه يدويًا','err')}ta.remove()}return}
   if(act==='rpsave'){const d=ui.redit||Math.max(1,lastDay());const t=document.getElementById('rp-text').value;
     if(!t.trim()){toast('اكتب نص التقرير أولًا','err');return}
     S.reports[d]={text:t,updated:new Date().toLocaleDateString('ar-SA-u-ca-islamic',{day:'numeric',month:'long',year:'numeric'})};ui.rday=d;render();await save('نُشر التقرير');return}
@@ -1533,6 +1639,8 @@ root.addEventListener('input',ev=>{
   else if(act==='cfc'){const c=S.challenges.find(x=>x.id===el.value);const am=document.getElementById('af-amount');if(c&&am)am.value=c.reward}
   else if(act==='sqn')ui.sqDraft[+el.dataset.i].n=el.value;
   else if(act==='sqp')ui.sqDraft[+el.dataset.i].p=el.value;
+  else if(act==='nf'){ui.nDraft=ui.nDraft||{};ui.nDraft[el.dataset.f]=el.value;
+    if(el.dataset.f==='body'){const c=document.getElementById('nw-count'),w=newsWords(el.value);if(c)c.textContent=ar(w)+' كلمة'+(w>40?' — أطول من المقترح، فاختصره إن أمكن':'')}}
 });
 let dateTimer;
 root.addEventListener('change',ev=>{
@@ -1545,6 +1653,7 @@ root.addEventListener('change',ev=>{
   else if(act==='rpday'){ui.redit=+el.value;ui.confirm=null;render()}
   else if(act==='pday'){ui.pday=+el.value;render()}
   else if(act==='pteam'){ui.pteam=el.value;render()}
+  else if(act==='nf'){ui.nDraft=ui.nDraft||{};ui.nDraft[el.dataset.f]=el.value}
   else if(act==='sqc'){ui.sqDraft[+el.dataset.i].c=el.checked}
   else if(act==='date'){const v=el.value.trim();if(v)S.dayDates[el.dataset.d]=v;else delete S.dayDates[el.dataset.d];clearTimeout(dateTimer);dateTimer=setTimeout(()=>save('حُفظ التاريخ'),400)}
 });
@@ -1567,7 +1676,7 @@ async function exportPng(pid,kind){
     const blob=await new Promise(r=>c.toBlob(r,'image/png'));
     const names={next:'الجولة-القادمة',table:'الترتيب',results:'النتائج',scorers:'الهدافون',lineup:'تشكيلة-'+T(ui.pteam).name,challenges:'التحديات'};
     const fanNames={standings:'الترتيب',next:'الجولة-القادمة',results:'النتائج-الجولة-'+ui.sday,scorers:'الهدافون',lineups:'تشكيلة-'+T(ui.pteam).name,challenges:'التحديات'};
-    const name=kind?`دوري-غراس-${fanNames[kind]}.png`:ui.ptype==='challenges'?'دوري-غراس-التحديات.png':ui.ptype==='lineup'?`دوري-غراس-${names.lineup}.png`:`دوري-غراس-${names[ui.ptype]}-الجولة-${ui.pday}.png`;
+    const name=kind&&kind.startsWith('news-')?'دوري-غراس-خبر.png':kind?`دوري-غراس-${fanNames[kind]}.png`:ui.ptype==='challenges'?'دوري-غراس-التحديات.png':ui.ptype==='lineup'?`دوري-غراس-${names.lineup}.png`:`دوري-غراس-${names[ui.ptype]}-الجولة-${ui.pday}.png`;
     const file=new File([blob],name,{type:'image/png'});
     if(navigator.canShare&&navigator.canShare({files:[file]})){
       try{await navigator.share({files:[file],title:'دوري غراس'});return}catch(e){if(e&&e.name==='AbortError')return}
