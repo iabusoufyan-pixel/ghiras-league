@@ -8,17 +8,21 @@
 // POST /api/state {action:"restore", token, version, v} → استرجاع النسخة v
 // POST /api/state {action:"logout", token}     → إنهاء الجلسة
 // POST /api/state {action:"vote", poll, option, voter} → صوت في تصويت مفتوح (للجميع، صوت واحد لكل جهاز)
+// POST /api/state {action:"news", key, op:"add"|"update"|"delete", item} → نشر الأخبار فقط بمفتاح المحرر
 //
 // التخزين: Upstash Redis المربوط من Vercel Marketplace.
 // المتغيرات المطلوبة في Vercel:
 //   KV_REST_API_URL و KV_REST_API_TOKEN  (تُضاف تلقائيًا عند ربط Upstash)
 //   COMMITTEE_PIN                         (رمز اللجنة، تضيفه أنت)
+//   NEWS_KEY                              (اختياري: مفتاح المحرر، ينشر الأخبار ولا يملك غيرها)
 
 import crypto from "node:crypto";
 
 const REDIS_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
 const REDIS_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
 const PIN = process.env.COMMITTEE_PIN || "";
+const NEWS_KEY = process.env.NEWS_KEY || "";
+const NEWS_TAGS = ["breaking", "result", "transfer", "star", "numbers", "challenge", "interview", "next"];
 
 const KEY_DATA = "ghiras:data";
 const KEY_VER = "ghiras:version";
@@ -56,10 +60,44 @@ export async function redis(cmd) {
 
 const sha = (s) => crypto.createHash("sha256").update(String(s)).digest("hex");
 
-function samePin(a) {
-  if (!PIN || typeof a !== "string") return false;
+function sameSecret(a, secret) {
+  if (!secret || typeof a !== "string") return false;
   const h = (s) => crypto.createHash("sha256").update(s).digest();
-  return crypto.timingSafeEqual(h(a), h(PIN));
+  return crypto.timingSafeEqual(h(a), h(secret));
+}
+const samePin = (a) => sameSecret(a, PIN);
+
+// مفتاح المحرر: يضيف خبرًا أو يعدّله أو يحذفه، ويُدمج مع آخر نسخة حتى لا يكتب فوق تعديل اللجنة
+async function editNews(body) {
+  const op = body.op, it = body.item || {};
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const [raw, ver] = await redis(["MGET", KEY_DATA, KEY_VER]);
+    if (!raw) return { status: 409, error: "لم تُحفظ بيانات الدوري بعد" };
+    const data = JSON.parse(raw);
+    data.news = data.news || [];
+    let id = it.id;
+    if (op === "delete") {
+      if (!data.news.some((n) => n.id === id)) return { status: 404, error: "الخبر غير موجود" };
+      data.news = data.news.filter((n) => n.id !== id);
+    } else {
+      const title = String(it.title || "").trim().slice(0, 90), text = String(it.body || "").trim().slice(0, 500);
+      if (!title) return { status: 400, error: "عنوان الخبر مطلوب" };
+      const tag = NEWS_TAGS.includes(it.tag) ? it.tag : "breaking";
+      const day = Math.max(1, Math.min(30, Number(it.day) || 1));
+      if (op === "update") {
+        const n = data.news.find((x) => x.id === id);
+        if (!n) return { status: 404, error: "الخبر غير موجود" };
+        Object.assign(n, { tag, day, title, body: text });
+      } else if (op === "add") {
+        id = "n" + crypto.randomBytes(5).toString("hex");
+        data.news.push({ id, at: Date.now(), tag, day, title, body: text, by: "editor" });
+      } else return { status: 400, error: "عملية غير معروفة" };
+    }
+    const r = await writeData(Number(ver || 0), data);
+    if (r.status === 409) continue;
+    return r.status === 200 ? { status: 200, id, version: r.version } : r;
+  }
+  return { status: 409, error: "البيانات مشغولة، حاول بعد قليل" };
 }
 
 // الجلسة مربوطة بالرمز الحالي، فإذا تغيّر COMMITTEE_PIN انتهت كل الجلسات القديمة
@@ -194,6 +232,20 @@ export default async function handler(req, res) {
       await redis(["INCR", ipKey]);
       await redis(["EXPIRE", ipKey, 60 * 60 * 24 * 14]);
       return res.status(200).json({ ok: true, votes: await pollCounts(data, true) });
+    }
+
+    if (body.action === "news") {
+      if (!NEWS_KEY || NEWS_KEY.length < 16) return res.status(503).json({ error: "لم يُضبط مفتاح المحرر NEWS_KEY في Vercel" });
+      const failKey = `ghiras:fail:${clientIp(req)}`;
+      if (Number((await redis(["GET", failKey])) || 0) >= MAX_FAILS) return res.status(429).json({ error: "محاولات كثيرة، حاول بعد ربع ساعة" });
+      if (!sameSecret(body.key, NEWS_KEY)) {
+        await redis(["INCR", failKey]);
+        await redis(["EXPIRE", failKey, FAIL_WINDOW]);
+        return res.status(401).json({ error: "مفتاح المحرر غير صحيح" });
+      }
+      const r = await editNews(body);
+      if (r.status !== 200) return res.status(r.status).json({ error: r.error });
+      return res.status(200).json({ ok: true, id: r.id, version: r.version });
     }
 
     if (!PIN) return res.status(503).json({ error: "لم يُضبط رمز اللجنة COMMITTEE_PIN في Vercel" });
