@@ -734,7 +734,7 @@ const isLoan=(m,p,t)=>slotLoans(m.day,m.slot).some(l=>canon(l.p)===canon(p)&&l.t
 function scorers(upTo=99){
   const map={};
   played(upTo).forEach(m=>(m.goals||[]).forEach(g=>{
-    const k=canon(g.p);if(!k)return;
+    const k=canon(g.p);if(!k||/^(هدف )?عكسي$/.test(nm(k)))return; // الهدف العكسي يُحتسب في النتيجة لا في قائمة الهدافين
     const e=map[k]||(map[k]={name:k,g:0,by:{}});
     e.g++;const key=g.t+(isLoan(m,k,g.t)?'|loan':'');e.by[key]=(e.by[key]||0)+1;
   }));
