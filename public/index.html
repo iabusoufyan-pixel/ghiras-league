@@ -732,9 +732,14 @@ function catOf(p){const C=S.categories||{};p=String(p||'').trim();if(!p)return '
 const catChip=p=>{const c=catOf(p);return c?`<i class="cat cat-${c==='أ'?'a':c==='ب'?'b':'c'}" title="الفئة ${c}">${c}</i>`:''};
 const slotLoans=(d,sl)=>(S.loanLog||[]).filter(l=>l.day===d&&l.slot===sl);
 const isLoan=(m,p,t)=>slotLoans(m.day,m.slot).some(l=>canon(l.p)===canon(p)&&l.to===t);
+// الهدف العكسي يُكتب باسم «عكسي» ويُسجَّل للفريق المستفيد، ولا يدخل قائمة الهدافين
+const OG='هدف عكسي';
+const isOG=p=>/^(?:هدف\s*)?(?:عكسي|ذاتي)$/.test(nm(p));
+const goalKey=p=>isOG(p)?OG:canon(p);
 function scorers(upTo=99){
   const map={};
   played(upTo).forEach(m=>(m.goals||[]).forEach(g=>{
+    if(isOG(g.p))return;
     const k=canon(g.p);if(!k)return;
     const e=map[k]||(map[k]={name:k,g:0,by:{}});
     e.g++;const key=g.t+(isLoan(m,k,g.t)?'|loan':'');e.by[key]=(e.by[key]||0)+1;
@@ -808,7 +813,7 @@ function vTable(){
 }
 function goalsLine(m,side){
   const t=side==='a'?m.a:m.b;
-  const c={};(m.goals||[]).filter(g=>g.t===t).forEach(g=>{const k=canon(g.p);c[k]=(c[k]||0)+1});
+  const c={};(m.goals||[]).filter(g=>g.t===t).forEach(g=>{const k=goalKey(g.p);c[k]=(c[k]||0)+1});
   return Object.entries(c).map(([p,n])=>esc(p)+(n>1?' ('+ar(n)+')':'')+(isLoan(m,p,t)?' <span class="loan">إعارة</span>':'')).join('، ');
 }
 function vMatches(){
@@ -837,7 +842,7 @@ function editor(d,slot,a,b,m){
   return `<div class="editor">${opts}
   <div class="ed-score">${teamChip(a)}<input id="ed-ga" type="number" min="0" max="30" inputmode="numeric" data-act="dga" value="${dr.ga}" aria-label="أهداف ${esc(T(a).name)}"><span>-</span><input id="ed-gb" type="number" min="0" max="30" inputmode="numeric" data-act="dgb" value="${dr.gb}" aria-label="أهداف ${esc(T(b).name)}">${teamChip(b)}</div>
   <div class="ed-sec"><h4>الهدافون</h4><div class="rows">${dr.goals.map((g,i)=>`<div class="row"><input id="g-p-${i}" type="text" list="plist" data-act="gp" data-i="${i}" value="${esc(g.p)}" placeholder="اسم اللاعب" aria-label="اسم الهداف"><select id="g-t-${i}" data-act="gt" data-i="${i}" aria-label="سجّل لفريق">${teamOpts(g.t,[a,b])}</select><button class="btn link" data-act="grm" data-i="${i}" aria-label="حذف الهدف">✕</button></div>`).join('')}</div>
-  <button class="btn link" data-act="gadd">+ هدف</button></div>
+  <button class="btn link" data-act="gadd">+ هدف</button><p class="note" style="margin:4px 0 0">للهدف العكسي اكتب «عكسي» واختر الفريق المستفيد منه، فيُحسب في النتيجة ولا يدخل قائمة الهدافين.</p></div>
   <div class="ed-sec"><h4>الإعارات في هذه المباراة</h4><div class="rows">${dr.loans.map((l,i)=>`<div class="row"><input id="l-p-${i}" type="text" list="plist" data-act="lp" data-i="${i}" value="${esc(l.p)}" placeholder="اسم اللاعب" aria-label="اسم اللاعب المعار"><span class="note">من</span><select id="l-f-${i}" data-act="lf" data-i="${i}" aria-label="الفريق المعير">${teamOpts(l.from)}</select><span class="note">إلى</span><select id="l-t-${i}" data-act="lt" data-i="${i}" aria-label="الفريق المستعير">${teamOpts(l.to,[a,b])}</select><input id="l-fee-${i}" type="number" min="0" step="50" inputmode="numeric" data-act="lfee" data-i="${i}" value="${esc(l.fee!=null?l.fee:LOAN_FEE)}" aria-label="رسوم الإعارة" style="width:84px"><span class="note">ريال</span><select id="l-pt-${i}" data-act="lpt" data-i="${i}" aria-label="تذهب الرسوم">${Object.entries(PAYTO).map(([k,v])=>`<option value="${k}"${(l.payTo||'lender')===k?' selected':''}>${v}</option>`).join('')}</select><button class="btn link" data-act="lrm" data-i="${i}" aria-label="حذف الإعارة">✕</button></div>`).join('')}</div>
   <button class="btn link" data-act="ladd">+ إعارة</button></div>
   <div id="ed-warn" aria-live="polite">${warnHtml()}</div>
@@ -1016,7 +1021,7 @@ function pTable(){
 }
 function pResults(){
   const d=ui.pday,ms=played().filter(m=>m.day===d);
-  const sc=(m,t)=>{const c={};(m.goals||[]).filter(g=>g.t===t).forEach(g=>{const k=canon(g.p);c[k]=(c[k]||0)+1});return Object.entries(c).map(([p,n])=>esc(p)+(n>1?' ×'+ar(n):'')).join('، ')};
+  const sc=(m,t)=>{const c={};(m.goals||[]).filter(g=>g.t===t).forEach(g=>{const k=goalKey(g.p);c[k]=(c[k]||0)+1});return Object.entries(c).map(([p,n])=>esc(p)+(n>1?' ×'+ar(n):'')).join('، ')};
   const body=ms.length?ms.sort((x,y)=>x.slot-y.slot).map(m=>`<div class="pr-match"><span class="pr-n">مباراة ${ar(m.slot)}</span><div class="pr-line"><span class="a${m.ga<m.gb?' lose':''}">${crest(m.a)}${esc(T(m.a).name)}</span><span class="pr-score"><span>${ar(m.ga)}</span><span>${ar(m.gb)}</span></span><span class="b${m.gb<m.ga?' lose':''}">${esc(T(m.b).name)}${crest(m.b)}</span></div>
     <div class="pr-sc"><span>${sc(m,m.a)}</span><span class="b">${sc(m,m.b)}</span></div></div>`).join(''):'<div style="opacity:.7">لا نتائج لهذه الجولة بعد.</div>';
   const g=ms.reduce((t,m)=>t+m.ga+m.gb,0);
@@ -1201,7 +1206,7 @@ const BIGWIN=['','','','بثلاثية','برباعية','بخماسية','بس�
 // صياغات جاهزة من بيانات الدوري، تعدّلها اللجنة قبل النشر
 function newsSuggestions(){
   const out=[],ld=lastDay(),nd=nextRound();
-  const plain=(m,t)=>{const c={};(m.goals||[]).filter(g=>g.t===t).forEach(g=>{const k=canon(g.p);c[k]=(c[k]||0)+1});return Object.entries(c).map(([p,n])=>p+(n>1?' ('+ar(n)+')':'')).join('، ')};
+  const plain=(m,t)=>{const c={};(m.goals||[]).filter(g=>g.t===t).forEach(g=>{const k=goalKey(g.p);c[k]=(c[k]||0)+1});return Object.entries(c).map(([p,n])=>p+(n>1?' ('+ar(n)+')':'')).join('، ')};
   if(ld)played().filter(m=>m.day===ld).forEach(m=>{
     const A=T(m.a).name,B=T(m.b).name;let title,body;
     if(m.ga===m.gb){title=`تعادل ${A} و${B} ${ar(m.ga)}-${ar(m.gb)}`;
@@ -1211,7 +1216,7 @@ function newsSuggestions(){
       title=gw-gl>=3?`${W} يكتسح ${L} ${BIGWIN[gw]&&gl===0?BIGWIN[gw]+' نظيفة':'بنتيجة '+ar(gw)+'-'+ar(gl)}`:gw-gl===1?`${W} يتجاوز ${L} بصعوبة ${ar(gw)}-${ar(gl)}`:`${W} يفوز على ${L} ${ar(gw)}-${ar(gl)}`;
       body=plain(m,w)?`سجّل ${lam(W)}: ${plain(m,w)}${plain(m,l)?`، و${lam(L)}: ${plain(m,l)}`:''}.`:''}
     out.push({tag:'result',day:ld,title,body});
-    const c={};(m.goals||[]).forEach(g=>{const k=canon(g.p);c[k]=(c[k]||0)+1});
+    const c={};(m.goals||[]).filter(g=>!isOG(g.p)).forEach(g=>{const k=canon(g.p);c[k]=(c[k]||0)+1});
     Object.entries(c).filter(([,n])=>n>=3).forEach(([p,n])=>out.push({tag:'star',day:ld,title:`${n===3?'هاتريك':ar(n)+' أهداف'} ${lam(p)}`,body:`${p} يسجّل ${count(n,'goal')} في مباراة ${A} و${B}.`}));
   });
   if(ld){const tb=table(),t1=tb[0],t2=tb[1];
@@ -1306,7 +1311,7 @@ function scrapView(){
   if(nd)body+=ch('next','مباريات الجولة '+N2(nd),S.dayDates[nd]?esc(S.dayDates[nd]):'',nf.map(f=>`<div class="sc-fx ${big&&f.slot===big.slot?'big':''}"><span>${esc(T(f.a).name)}</span><span class="vs">ضد</span><span class="b">${esc(T(f.b).name)}</span></div>`).join(''),true,'next');
   // results
   if(ld){const ms=played().filter(m=>m.day===ui.sday);
-    const gl=(m,t)=>{const c={};(m.goals||[]).filter(g=>g.t===t).forEach(g=>{const k=g.p.trim();c[k]=(c[k]||0)+1});return Object.entries(c).map(([p,k])=>esc(p)+(k>1?' ×'+ar(k):'')+(isLoan(m,p,t)?' <em>(إعارة)</em>':'')).join('، ')};
+    const gl=(m,t)=>{const c={};(m.goals||[]).filter(g=>g.t===t).forEach(g=>{const k=isOG(g.p)?OG:g.p.trim();c[k]=(c[k]||0)+1});return Object.entries(c).map(([p,k])=>esc(p)+(k>1?' ×'+ar(k):'')+(isLoan(m,p,t)?' <em>(إعارة)</em>':'')).join('، ')};
     const chips=ld>1?`<div class="sc-chips">${Array.from({length:ld},(_,i)=>i+1).map(d=>`<button data-act="sday" data-k="${d}" aria-pressed="${d===ui.sday}">الجولة ${N2(d)}</button>`).join('')}</div>`:'';
     body+=ch('results','نتائج الجولة '+N2(ui.sday),count(ms.length,'match')+' · '+count(ms.reduce((t,m)=>t+m.ga+m.gb,0),'goal'),chips+ms.map(m=>`<div class="sc-m"><span class="a ${m.ga<m.gb?'lose':''}">${esc(T(m.a).name)}</span><span class="s num">${ar(m.ga)} - ${ar(m.gb)}</span><span class="b ${m.gb<m.ga?'lose':''}">${esc(T(m.b).name)}</span><div class="g"><span>${gl(m,m.a)}</span><span>${gl(m,m.b)}</span></div></div>`).join(''),false,'results')}
   // scorers
