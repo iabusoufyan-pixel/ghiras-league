@@ -577,6 +577,8 @@ body.scrap #root{max-width:none;padding:0}
 .status.warnbox{background:var(--soft);border:1px solid var(--warn);border-radius:10px;padding:8px 12px;color:var(--ink)}
 .status.dirty{position:sticky;top:76px;z-index:30;box-shadow:0 6px 18px rgba(0,0,0,.25)}
 .lj .status.dirty{border:2px solid var(--bad)}
+.scrap .sc-ko{font-family:var(--display);font-weight:700;font-size:13px;color:var(--leaf);margin-top:8px}
+.scrap .ko-note{grid-column:1/-1;text-align:center;font-weight:700;font-size:13px;color:var(--leaf)}
 .nw-tag{display:inline-block;color:#fff;font-family:var(--display);font-weight:700;font-size:11.5px;padding:1px 8px;line-height:1.6;vertical-align:middle}
 .nw-list{display:grid}
 .nw-item{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line)}
@@ -668,7 +670,11 @@ const signed=v=>(v>0?'+':v<0?'−':'')+ar(Math.abs(v));
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const LOAN_FEE=500;
 const PAYTO={lender:'للفريق المعير',committee:'للجنة',half:'مناصفة'};
-const T=id=>S.teams.find(t=>t.id===id)||{name:'؟',color:'#888'};
+// كأس غراس: الجولة الأخيرة سلّم إقصاء. الثالث × الرابع، والفائز × الثاني، والفائز × المتصدر في النهائي
+const KO_NAMES={seed1:'المتصدر',seed2:'صاحب المركز الثاني',seed3:'صاحب المركز الثالث',seed4:'صاحب المركز الرابع',w1:'الفائز من الملحق',w2:'الفائز من نصف النهائي'};
+const KO_STAGE={q:'الملحق',semi:'نصف النهائي',final:'النهائي'};
+const isPH=id=>!!KO_NAMES[id];
+const T=id=>S.teams.find(t=>t.id===id)||(KO_NAMES[id]?{id,name:KO_NAMES[id],color:'#888'}:{name:'؟',color:'#888'});
 const uid=()=>Math.random().toString(36).slice(2,9);
 const root=document.getElementById('root');
 
@@ -698,9 +704,23 @@ try{const t=sessionStorage.getItem('ghiras-tab');if(t)ui.tab=t}catch(e){}
 const matchAt=(d,s)=>S.matches.find(m=>m.day===d&&m.slot===s);
 const played=(upTo=99)=>S.matches.filter(m=>m.day<=upTo).sort((x,y)=>x.day-y.day||x.slot-y.slot);
 
+const koDay=()=>+(S.meta&&S.meta.koDay)||0;
+const isKO=d=>koDay()>0&&d===koDay();
+const koFix=(d,sl)=>isKO(d)?S.fixtures.find(f=>f.day===d&&f.slot===sl&&f.ko):null;
+// ترتيب السلّم من ترتيب الدوري بعد آخر جولة قبل الكأس، ولا يُعتمد قبل اكتمالها
+const leagueDone=()=>S.fixtures.filter(f=>f.day<koDay()).every(f=>matchAt(f.day,f.slot));
+const seedId=n=>leagueDone()?(table(koDay()-1)[n-1]||{}).id||'seed'+n:'seed'+n;
+// الفائز في مباراة الكأس: بالأهداف، أو بالترجيح، والتعادل في النهائي للمتصدر
+function koWinner(m){if(!m)return null;if(m.ga!==m.gb)return m.ga>m.gb?m.a:m.b;const f=koFix(m.day,m.slot);if(!f)return null;return f.ko==='final'?seedId(1):(m.pw||null)}
+function resolveLadder(){const d=koDay();if(!d)return;
+  const res=id=>id&&id.startsWith('seed')?seedId(+id.slice(4)):id==='w1'?koWinner(matchAt(d,1))||'w1':id==='w2'?koWinner(matchAt(d,2))||'w2':id;
+  S.fixtures.filter(f=>f.day===d&&f.ko).forEach(f=>{if(matchAt(d,f.slot))return;f.a=res(f.sa);f.b=res(f.sb)})}
+const champion=()=>{const d=koDay();if(d){const f=S.fixtures.find(x=>x.day===d&&x.ko==='final');const w=f&&koWinner(matchAt(d,f.slot));if(w)return w}return table()[0].id};
+function koNote(m){if(!m||!isKO(m.day)||m.ga!==m.gb)return '';const f=koFix(m.day,m.slot);if(!f)return '';
+  return f.ko==='final'?`التعادل يمنح اللقب للمتصدر: ${esc(T(seedId(1)).name)}`:m.pw?`فاز ${esc(T(m.pw).name)} بركلات الترجيح`:''}
 function table(upTo=99){
   const r={};S.teams.forEach(t=>r[t.id]={id:t.id,p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,prize:0,form:[]});
-  played(upTo).forEach(m=>{
+  played(upTo).filter(m=>!isKO(m.day)).forEach(m=>{
     const A=r[m.a],B=r[m.b];if(!A||!B)return;
     A.p++;B.p++;A.gf+=m.ga;A.ga+=m.gb;B.gf+=m.gb;B.ga+=m.ga;
     if(m.ga>m.gb){A.w++;B.l++;A.pts+=3;A.prize+=PRIZE_W;A.form.push('w');B.form.push('l')}
@@ -822,11 +842,13 @@ function vMatches(){
     const date=S.dayDates[d]||'';
     return `<section class="panel day"><div class="day-head"><h3>${dayLabel(d)}</h3>${canWrite?`<input id="date-${d}" data-act="date" data-d="${d}" value="${esc(date)}" placeholder="التاريخ، مثل: الجمعة ٢٨ / ٤ / ١٤٤٨" aria-label="تاريخ ${dayLabel(d)}">`:`<span class="note">${esc(date)}</span>`}</div>
     ${fx.map(f=>{const m=matchAt(d,f.slot);const a=m?m.a:f.a,b=m?m.b:f.b;const key=d+'-'+f.slot;
-      return `<div class="fx"><div class="fx-row"><span class="fx-n num">م${ar(f.slot)}</span><span class="fx-a">${teamChip(a)}</span>
+      const ph=f.ko&&!m&&(isPH(a)||isPH(b));
+      return `<div class="fx">${f.ko?`<div class="note" style="font-weight:700">${KO_STAGE[f.ko]}</div>`:''}<div class="fx-row"><span class="fx-n num">م${ar(f.slot)}</span><span class="fx-a">${teamChip(a)}</span>
       ${m?`<span class="score num">${ar(m.ga)} - ${ar(m.gb)}</span>`:`<span class="score pending">لم تُلعب</span>`}
       <span class="fx-b">${teamChip(b)}</span>
-      ${canWrite&&ui.edit!==key?`<button class="btn${m?'':' primary'}" data-act="edit" data-k="${key}">${m?'تعديل':'إدخال النتيجة'}</button>`:'<span></span>'}</div>
+      ${canWrite&&ui.edit!==key&&!ph?`<button class="btn${m?'':' primary'}" data-act="edit" data-k="${key}">${m?'تعديل':'إدخال النتيجة'}</button>`:ph&&canWrite?'<span class="note">تُحدَّد الفرق أولًا</span>':'<span></span>'}</div>
       ${m&&(m.goals||[]).length?`<div class="fx-goals"><div>${goalsLine(m,'a')}</div><div>${goalsLine(m,'b')}</div></div>`:''}
+      ${koNote(m)?`<div class="note" style="text-align:center;font-weight:700">${koNote(m)}</div>`:''}
       ${ui.edit===key?editor(d,f.slot,a,b,m):''}</div>`}).join('')}</section>`}).join('');
 }
 function warnHtml(){
@@ -845,6 +867,7 @@ function editor(d,slot,a,b,m){
   <button class="btn link" data-act="gadd">+ هدف</button><p class="note" style="margin:4px 0 0">للهدف العكسي اكتب «عكسي» واختر الفريق المستفيد منه، فيُحسب في النتيجة ولا يدخل قائمة الهدافين.</p></div>
   <div class="ed-sec"><h4>الإعارات في هذه المباراة</h4><div class="rows">${dr.loans.map((l,i)=>`<div class="row"><input id="l-p-${i}" type="text" list="plist" data-act="lp" data-i="${i}" value="${esc(l.p)}" placeholder="اسم اللاعب" aria-label="اسم اللاعب المعار"><span class="note">من</span><select id="l-f-${i}" data-act="lf" data-i="${i}" aria-label="الفريق المعير">${teamOpts(l.from)}</select><span class="note">إلى</span><select id="l-t-${i}" data-act="lt" data-i="${i}" aria-label="الفريق المستعير">${teamOpts(l.to,[a,b])}</select><input id="l-fee-${i}" type="number" min="0" step="50" inputmode="numeric" data-act="lfee" data-i="${i}" value="${esc(l.fee!=null?l.fee:LOAN_FEE)}" aria-label="رسوم الإعارة" style="width:84px"><span class="note">ريال</span><select id="l-pt-${i}" data-act="lpt" data-i="${i}" aria-label="تذهب الرسوم">${Object.entries(PAYTO).map(([k,v])=>`<option value="${k}"${(l.payTo||'lender')===k?' selected':''}>${v}</option>`).join('')}</select><button class="btn link" data-act="lrm" data-i="${i}" aria-label="حذف الإعارة">✕</button></div>`).join('')}</div>
   <button class="btn link" data-act="ladd">+ إعارة</button></div>
+  ${(()=>{const f=koFix(d,slot);if(!f)return '';return f.ko==='final'?`<p class="note" style="margin:0">النهائي: إذا انتهى بالتعادل فاز المتصدر باللقب دون ترجيح.</p>`:`<div class="ed-sec"><h4>عند التعادل: الفائز بركلات الترجيح</h4><select id="ed-pw" data-act="dpw" aria-label="الفائز بالترجيح"><option value="">—</option>${teamOpts(dr.pw,[a,b])}</select></div>`})()}
   <div id="ed-warn" aria-live="polite">${warnHtml()}</div>
   <div class="ed-actions"><button class="btn primary" data-act="save">حفظ النتيجة</button><button class="btn" data-act="cancel">إلغاء</button>
   ${m?(ui.confirm==='del'?`<button class="btn danger" data-act="del">تأكيد حذف النتيجة</button>`:`<button class="btn danger" data-act="askdel">حذف النتيجة</button>`):''}</div></div>`;
@@ -1279,7 +1302,7 @@ function scrapView(){
   <main class="sc-wrap" id="top">${status()}
   <section class="sc-hero">${TROPHY}
     ${nd?`<div class="kicker">الجولة ${N2(nd)}${S.dayDates[nd]?' · '+esc(S.dayDates[nd]):''}</div>`:`<div class="kicker">اكتملت جولات الدوري</div>`}
-    <h1>${big?`قمة ${esc(T(big.a).name)} و${esc(T(big.b).name)}`:nd?'الجولة '+N2(nd):'بطل دوري غراس: '+esc(T(t1.id).name)}</h1>
+    <h1>${big?`قمة ${esc(T(big.a).name)} و${esc(T(big.b).name)}`:nd?'الجولة '+N2(nd):'بطل دوري غراس: '+esc(T(champion()).name)}</h1>
     <p>${ld?(t1.pts===t2.pts?`${esc(T(t1.id).name)} و${esc(T(t2.id).name)} متساويان ${bi(t1.pts,'point')}${(t1.gf-t1.ga)-(t2.gf-t2.ga)===1?'، والفارق هدف واحد':''}.`:`${esc(T(t1.id).name)} يتصدر ${bi(t1.pts,'point')}، بفارق ${countG(t1.pts-t2.pts,'point')} عن ${esc(T(t2.id).name)}.`):'الدوري على وشك الانطلاق.'}</p>
     <div class="ctas">${hpoll?`<a class="ybtn" href="#sc-poll" data-act="scjump" data-k="poll">🗳️ ${esc(hpoll.q.replace(/[؟?]$/,''))}</a>`:''}${(S.news||[]).length?`<a class="gbtn" href="#sc-news" data-act="scjump" data-k="news">آخر الأخبار</a>`:''}${paperRounds().length?`<a class="gbtn" href="#sc-paper" data-act="scjump" data-k="paper">اقرأ الجريدة</a>`:''}</div></section>`;
   /* stats */
@@ -1308,12 +1331,12 @@ function scrapView(){
   // standings
   body+=ch('table','جدول الترتيب',ld?'بعد الجولة '+N2(ld):'',`<table class="sc-tbl"><thead><tr><th></th><th class="t">الفريق</th><th>لعب</th><th>فاز</th><th>تعادل</th><th>خسر</th><th>±</th><th>نقاط</th></tr></thead><tbody>${tb.map((r,i)=>`<tr class="${i===0&&r.pts>0?'top':''}"><td><span class="pos num">${ar(i+1)}</span></td><td class="t">${esc(T(r.id).name)}</td><td>${ar(r.p)}</td><td>${ar(r.w)}</td><td>${ar(r.d)}</td><td>${ar(r.l)}</td><td>${signed(r.gf-r.ga)}</td><td class="p">${ar(r.pts)}</td></tr>`).join('')}</tbody></table>`,false,'standings');
   // next
-  if(nd)body+=ch('next','مباريات الجولة '+N2(nd),S.dayDates[nd]?esc(S.dayDates[nd]):'',nf.map(f=>`<div class="sc-fx ${big&&f.slot===big.slot?'big':''}"><span>${esc(T(f.a).name)}</span><span class="vs">ضد</span><span class="b">${esc(T(f.b).name)}</span></div>`).join(''),true,'next');
+  if(nd)body+=ch('next',isKO(nd)?'كأس غراس: سلّم النهائيات':'مباريات الجولة '+N2(nd),(S.dayDates[nd]?esc(S.dayDates[nd]):'')+(isKO(nd)?(S.dayDates[nd]?' · ':'')+'الخاسر يودّع، والتعادل في النهائي للمتصدر':''),nf.map(f=>`${f.ko?`<div class="sc-ko">${KO_STAGE[f.ko]}</div>`:''}<div class="sc-fx ${big&&f.slot===big.slot?'big':''}"><span>${esc(T(f.a).name)}</span><span class="vs">ضد</span><span class="b">${esc(T(f.b).name)}</span></div>`).join(''),true,'next');
   // results
   if(ld){const ms=played().filter(m=>m.day===ui.sday);
     const gl=(m,t)=>{const c={};(m.goals||[]).filter(g=>g.t===t).forEach(g=>{const k=isOG(g.p)?OG:g.p.trim();c[k]=(c[k]||0)+1});return Object.entries(c).map(([p,k])=>esc(p)+(k>1?' ×'+ar(k):'')+(isLoan(m,p,t)?' <em>(إعارة)</em>':'')).join('، ')};
     const chips=ld>1?`<div class="sc-chips">${Array.from({length:ld},(_,i)=>i+1).map(d=>`<button data-act="sday" data-k="${d}" aria-pressed="${d===ui.sday}">الجولة ${N2(d)}</button>`).join('')}</div>`:'';
-    body+=ch('results','نتائج الجولة '+N2(ui.sday),count(ms.length,'match')+' · '+count(ms.reduce((t,m)=>t+m.ga+m.gb,0),'goal'),chips+ms.map(m=>`<div class="sc-m"><span class="a ${m.ga<m.gb?'lose':''}">${esc(T(m.a).name)}</span><span class="s num">${ar(m.ga)} - ${ar(m.gb)}</span><span class="b ${m.gb<m.ga?'lose':''}">${esc(T(m.b).name)}</span><div class="g"><span>${gl(m,m.a)}</span><span>${gl(m,m.b)}</span></div></div>`).join(''),false,'results')}
+    body+=ch('results','نتائج الجولة '+N2(ui.sday),count(ms.length,'match')+' · '+count(ms.reduce((t,m)=>t+m.ga+m.gb,0),'goal'),chips+ms.map(m=>`<div class="sc-m"><span class="a ${m.ga<m.gb?'lose':''}">${esc(T(m.a).name)}</span><span class="s num">${ar(m.ga)} - ${ar(m.gb)}</span><span class="b ${m.gb<m.ga?'lose':''}">${esc(T(m.b).name)}</span><div class="g"><span>${gl(m,m.a)}</span><span>${gl(m,m.b)}</span></div>${koNote(m)?`<div class="ko-note">${koNote(m)}</div>`:''}</div>`).join(''),false,'results')}
   // scorers
   let rk=0,pv=null;
   body+=ch('scorers','صراع الهدافين','',sc.slice(0,8).map((e,i)=>{if(e.g!==pv){rk=i+1;pv=e.g}return `<div class="sc-sc ${rk===1?'first':''}"><span class="r num">${ar(rk)}</span><span class="n">${esc(e.name)}<small>${isFloat(e.name)?'لاعب حر':esc(T(homeTeam(e)).name)}</small></span><span class="g num">${ar(e.g)}</span></div>`}).join('')||'<p class="sc-sub">لا أهداف بعد.</p>',true,'scorers');
@@ -1378,6 +1401,7 @@ addEventListener('resize',fitPoster);
 addEventListener('hashchange',()=>{if(!isLajna()&&canWrite){/* keep session */}render();if(isLajna()&&TOKEN)load().then(render);else if(isLajna()&&CONFIGURED&&LOADED)resume().then(render)});
 
 function render(){
+  resolveLadder();
   if(!isLajna()){document.body.classList.remove('lj');
     // نثبت القسم الذي يتعامل معه الطالب في مكانه على الشاشة حتى لا تقفز الصفحة بعد إعادة الرسم
     let anc=ui.anc&&document.getElementById(ui.anc);ui.anc=null;
@@ -1528,7 +1552,7 @@ root.addEventListener('click',async ev=>{
     toast(st===409?'عدّل عضو آخر البيانات للتو، فحمّلت آخر نسخة. أعد المحاولة':(j.error||'تعذّر الاسترجاع'),'err');ui.hist=null;await load();render();return}
   if(act==='tab'){ui.tab=b.dataset.k;ui.confirm=null;try{sessionStorage.setItem('ghiras-tab',ui.tab)}catch(e){}render();return}
   if(act==='edit'){const [d,s]=b.dataset.k.split('-').map(Number);const m=matchAt(d,s),f=S.fixtures.find(x=>x.day===d&&x.slot===s);
-    ui.edit=b.dataset.k;ui.confirm=null;ui.draft=m?{ga:m.ga,gb:m.gb,goals:m.goals.map(g=>({...g})),loans:slotLoans(d,s).map(l=>({...l})),a:m.a,b:m.b}:{ga:'',gb:'',goals:[],loans:slotLoans(d,s).map(l=>({...l})),a:f.a,b:f.b};render();return}
+    ui.edit=b.dataset.k;ui.confirm=null;ui.draft=m?{ga:m.ga,gb:m.gb,goals:m.goals.map(g=>({...g})),loans:slotLoans(d,s).map(l=>({...l})),a:m.a,b:m.b,pw:m.pw||''}:{ga:'',gb:'',goals:[],loans:slotLoans(d,s).map(l=>({...l})),a:f.a,b:f.b,pw:''};render();return}
   if(act==='cancel'){ui.edit=null;ui.draft=null;ui.confirm=null;render();return}
   if(act==='gadd'){dr.goals.push({p:'',t:dr.a});render();return}
   if(act==='grm'){dr.goals.splice(+b.dataset.i,1);render();return}
@@ -1542,7 +1566,9 @@ root.addEventListener('click',async ev=>{
     else{
       const ga=parseInt(dr.ga,10),gb=parseInt(dr.gb,10);
       if(!(ga>=0&&gb>=0)){toast('اكتب نتيجة الفريقين أولًا','err');return}
-      const rec={id:i>=0?S.matches[i].id:uid(),day:d,slot:s,a:dr.a,b:dr.b,ga,gb,goals:dr.goals.filter(g=>g.p.trim()).map(g=>({p:canon(g.p),t:g.t}))};
+      const kf=koFix(d,s);
+      if(kf&&kf.ko!=='final'&&ga===gb&&!dr.pw){toast('مباراة كأس انتهت بالتعادل: اختر الفائز بركلات الترجيح','err');return}
+      const rec={id:i>=0?S.matches[i].id:uid(),day:d,slot:s,a:dr.a,b:dr.b,ga,gb,...(kf&&kf.ko!=='final'&&ga===gb?{pw:dr.pw}:{}),goals:dr.goals.filter(g=>g.p.trim()).map(g=>({p:canon(g.p),t:g.t}))};
       S.loanLog=(S.loanLog||[]).filter(l=>!(l.day===d&&l.slot===s)).concat(dr.loans.filter(l=>l.p.trim()).map(l=>({id:l.id||uid(),day:d,slot:s,p:canon(l.p),from:l.from,to:l.to,fee:+l.fee||0,payTo:l.payTo||'lender',note:l.note||''})));
       if(i>=0)S.matches[i]=rec;else S.matches.push(rec);
     }
@@ -1657,6 +1683,7 @@ root.addEventListener('change',ev=>{
   else if(act==='lf')dr.loans[+el.dataset.i].from=el.value;
   else if(act==='lt')dr.loans[+el.dataset.i].to=el.value;
   else if(act==='lpt')dr.loans[+el.dataset.i].payTo=el.value;
+  else if(act==='dpw')dr.pw=el.value;
   else if(act==='lday'){ui.lday=+el.value;render()}
   else if(act==='rpday'){ui.redit=+el.value;ui.confirm=null;render()}
   else if(act==='pday'){ui.pday=+el.value;render()}
