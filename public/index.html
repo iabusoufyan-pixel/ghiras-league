@@ -595,6 +595,7 @@ body.scrap #root{max-width:none;padding:0}
 .np-news li .nw-tag{justify-self:start}
 .np-news b{font-family:var(--display);font-size:15px;line-height:1.4}
 .np-news span:not(.nw-tag){font-size:13.5px;color:#3a3d3a;line-height:1.6}
+.poster .iso{unicode-bidi:isolate;display:inline-block}
 .pn-body{flex:1;display:flex;align-items:center;font-size:27px;line-height:1.9;font-weight:500;color:#1d2a22;padding-block:10px 20px}
 .status.hist{display:grid;gap:8px}
 .hist-list{list-style:none;margin:0;padding:0;display:grid;gap:6px;max-height:340px;overflow:auto}
@@ -1243,10 +1244,12 @@ function vNews(){
     ${canWrite?`<div class="ed-actions"><button class="btn link" data-act="ncopy" data-id="${n.id}">نسخ</button><button class="btn link" data-act="nedit" data-id="${n.id}">تعديل</button>${ui.confirm==='n'+n.id?`<button class="btn danger" data-act="ndel" data-id="${n.id}">تأكيد الحذف</button>`:`<button class="btn link" data-act="naskdel" data-id="${n.id}">حذف</button>`}</div>`:''}</div>`).join('')}</div>`:'<div class="panel empty">لم يُنشر أي خبر بعد.</div>'}`;
   return form+sugHtml+listHtml;
 }
+// مكتبة تصدير الصور تخلط اتجاه الأرقام داخل النص العربي («بـ٢١» و«٣-٠»)، فنعزل كل رقم في صورة الخبر
+const isoNum=h=>h.replace(/[0-9٠-٩]+(?:[-–.,٬:/][0-9٠-٩]+)*/g,m=>`<span class="iso">${m}</span>`);
 // صورة الخبر للواتساب
 function pNews(n){
   const [l]=newsTag(n.tag);
-  return posterShell(esc(n.title),'',`<div class="pn-body">${esc(n.body)}</div>`,esc(newsWhen(n.at)==='اليوم'||newsWhen(n.at)==='أمس'?dayLabel(n.day):newsWhen(n.at)),l);
+  return posterShell(isoNum(esc(n.title)),'',`<div class="pn-body"><div>${isoNum(esc(n.body))}</div></div>`,esc(newsWhen(n.at)==='اليوم'||newsWhen(n.at)==='أمس'?dayLabel(n.day):newsWhen(n.at)),l);
 }
 /* ---------- students' page: season scrapbook ---------- */
 const SCRAP_ICONS={ball:'<circle cx="23" cy="23" r="19" fill="#fff" stroke="#1d2a22" stroke-width="3"/><path d="M23 12l8 6-3 10h-10l-3-10z" fill="#1d2a22"/><path d="M23 4v8M31 18l10-3M28 28l6 9M18 28l-6 9M15 18L5 15" stroke="#1d2a22" stroke-width="2.5"/>',
