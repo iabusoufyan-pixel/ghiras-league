@@ -767,13 +767,15 @@ function scorers(upTo=99){
   return Object.values(map).sort((a,b)=>b.g-a.g||a.name.localeCompare(b.name,'ar'));
 }
 function homeTeam(e){const k=Object.keys(e.by).filter(k=>!k.endsWith('|loan'));return k.length?k[0]:Object.keys(e.by)[0].split('|')[0]}
+// نصيب الفريق البائع من الصفقة: النصف، إلا إذا حددت اللجنة نصيبًا آخر
+const sellerShare=x=>x.sellerShare!=null?+x.sellerShare:(+x.amount||0)/2;
 function balances(){
   const t=table();const b={};
   t.forEach(r=>b[r.id]={prize:r.prize,inc:0,paid:0});
   (S.bonuses||[]).forEach(a=>{if(b[a.team])b[a.team].bonus=(b[a.team].bonus||0)+(+a.amount||0)});
   (S.awards||[]).forEach(a=>{if(b[a.team])b[a.team].ch=(b[a.team].ch||0)+(+a.amount||0)});
   let committee=0;
-  S.transfers.forEach(x=>{const a=+x.amount||0;if(b[x.to])b[x.to].paid+=a;if(b[x.from])b[x.from].inc+=a/2;committee+=a/2});
+  S.transfers.forEach(x=>{const a=+x.amount||0,sh=sellerShare(x);if(b[x.to])b[x.to].paid+=a;if(b[x.from])b[x.from].inc+=sh;committee+=a-sh});
   let loanCommittee=0;
   (S.loanLog||[]).forEach(l=>{const a=+l.fee||0;if(!a)return;if(b[l.to])b[l.to].loan=(b[l.to].loan||0)-a;
     const give=(id,v)=>{if(b[id])b[id].loan=(b[id].loan||0)+v};
@@ -893,7 +895,7 @@ function vMoney(){
     if(canWrite&&ui.tswap===x.id)return `<div class="row" style="flex-wrap:nowrap"><input id="tsw-${x.id}" type="text" list="plist2" value="${esc(x.swap||'')}" placeholder="لاعب من ${esc((T(x.to)||{}).name||"")}" aria-label="لاعب التعويض" style="min-width:120px"><button class="btn primary" data-act="tswsave" data-id="${x.id}">حفظ</button><button class="btn link" data-act="tswcancel" aria-label="إلغاء">✕</button></div>`;
     const v=x.swap?esc(x.swap):'<span class="note">—</span>';
     return canWrite?`${v} <button class="btn link" data-act="tswedit" data-id="${x.id}" aria-label="${x.swap?'تعديل':'إضافة'} لاعب التعويض">${x.swap?'✎':'＋'}</button>`:v};
-  const tr=S.transfers.length?`<div class="panel scroll"><table><thead><tr><th>الجولة</th><th class="team">اللاعب</th><th>الفئة</th><th>من</th><th>إلى</th><th class="team">التعويض للبائع</th><th>المبلغ</th><th>للفريق البائع</th><th>للجنة</th>${canWrite?'<th></th>':''}</tr></thead><tbody>${S.transfers.map(x=>`<tr><td class="num">${ar(x.day)}</td><td class="team">${esc(x.player)}</td><td>${esc(x.cat)}</td><td>${teamChip(x.from)}</td><td>${teamChip(x.to)}</td><td class="team">${swapCell(x)}</td><td class="num">${money(x.amount)}</td><td class="num">${money(x.amount/2)}</td><td class="num">${money(x.amount/2)}</td>${canWrite?`<td>${ui.confirm==='t'+x.id?`<button class="btn danger" data-act="tdel" data-id="${x.id}">تأكيد</button>`:`<button class="btn link" data-act="taskdel" data-id="${x.id}" aria-label="حذف الصفقة">✕</button>`}</td>`:''}</tr>`).join('')}</tbody></table></div>`:`<div class="panel empty">لا توجد صفقات بعد. تُسجَّل هنا نتيجة كل مزاد صامت بعد إعلانها.</div>`;
+  const tr=S.transfers.length?`<div class="panel scroll"><table><thead><tr><th>الجولة</th><th class="team">اللاعب</th><th>الفئة</th><th>من</th><th>إلى</th><th class="team">التعويض للبائع</th><th>المبلغ</th><th>للفريق البائع</th><th>للجنة</th>${canWrite?'<th></th>':''}</tr></thead><tbody>${S.transfers.map(x=>`<tr><td class="num">${ar(x.day)}</td><td class="team">${esc(x.player)}</td><td>${esc(x.cat)}</td><td>${teamChip(x.from)}</td><td>${teamChip(x.to)}</td><td class="team">${swapCell(x)}</td><td class="num">${money(x.amount)}</td><td class="num">${money(sellerShare(x))}</td><td class="num">${money((+x.amount||0)-sellerShare(x))}</td>${canWrite?`<td>${ui.confirm==='t'+x.id?`<button class="btn danger" data-act="tdel" data-id="${x.id}">تأكيد</button>`:`<button class="btn link" data-act="taskdel" data-id="${x.id}" aria-label="حذف الصفقة">✕</button>`}</td>`:''}</tr>`).join('')}</tbody></table></div>`:`<div class="panel empty">لا توجد صفقات بعد. تُسجَّل هنا نتيجة كل مزاد صامت بعد إعلانها.</div>`;
   const form=canWrite?`<h3 class="section-h">تسجيل صفقة من المزاد</h3><div class="panel form-grid">
     <label class="field">اللاعب<input id="tf-player" type="text" data-act="tfp" list="plist2" placeholder="اسم اللاعب"></label>
     <label class="field">الفئة<select id="tf-cat"><option>أ</option><option>ب</option><option>ج</option></select></label>
