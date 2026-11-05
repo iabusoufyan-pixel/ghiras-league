@@ -754,7 +754,8 @@ const slotLoans=(d,sl)=>(S.loanLog||[]).filter(l=>l.day===d&&l.slot===sl);
 const isLoan=(m,p,t)=>slotLoans(m.day,m.slot).some(l=>canon(l.p)===canon(p)&&l.to===t);
 // الهدف العكسي يُكتب باسم «عكسي» ويُسجَّل للفريق المستفيد، ولا يدخل قائمة الهدافين
 const OG='هدف عكسي';
-const isOG=p=>/^(?:هدف\s*)?(?:عكسي|ذاتي)$/.test(nm(p));
+// «عكسي» وحدها أو مع اسم اللاعب، مثل «هدف عكسي فارس»
+const isOG=p=>/^(?:هدف\s*)?(?:عكسي|ذاتي)(?:\s|$)/.test(nm(p));
 const goalKey=p=>isOG(p)?OG:canon(p);
 function scorers(upTo=99){
   const map={};
