@@ -577,26 +577,40 @@ body.scrap #root{max-width:none;padding:0}
 .status.warnbox{background:var(--soft);border:1px solid var(--warn);border-radius:10px;padding:8px 12px;color:var(--ink)}
 .status.dirty{position:sticky;top:76px;z-index:30;box-shadow:0 6px 18px rgba(0,0,0,.25)}
 .lj .status.dirty{border:2px solid var(--bad)}
-.scrap .sim-rules{list-style:arabic-indic;margin:0 0 14px;padding-inline-start:20px;display:grid;gap:6px;font-size:14.5px;line-height:1.75}
-.scrap .sim-rules b{font-family:var(--display)}
-.scrap .sim-h{font-family:var(--display);font-weight:700;font-size:16px;margin:4px 0 8px;color:var(--leaf)}
-.scrap .sim-m{background:rgba(255,255,255,.65);padding:10px 10px 8px;margin-bottom:8px;border-inline-start:4px solid var(--tape)}
-.scrap .sim-m.real{border-inline-start-color:var(--leaf)}
-.scrap .sim-k{font-family:var(--display);font-weight:700;font-size:12.5px;color:var(--muted)}
-.scrap .sim-row{display:grid;grid-template-columns:1fr auto auto auto 1fr;align-items:center;gap:6px;margin-top:4px}
-.scrap .sim-t{font-family:var(--display);font-weight:700;font-size:16px;min-width:0}
-.scrap .sim-t.b{text-align:end}
+.scrap .sim-rules{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.scrap .sim-rule{background:rgba(255,255,255,.7);padding:10px;display:grid;gap:2px;align-content:start;border-top:3px solid var(--tape);box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.scrap .sim-rule:nth-child(3n+2){border-top-color:var(--leaf)}.scrap .sim-rule:nth-child(3n){border-top-color:#b08a2e}
+.scrap .sim-rule .ic{font-size:22px;line-height:1.2}
+.scrap .sim-rule b{font-family:var(--display);font-weight:700;font-size:15.5px}
+.scrap .sim-rule span:last-child{font-size:13px;line-height:1.6;color:#4f5a52}
+.scrap .sim-h{display:flex;align-items:center;gap:6px;font-family:var(--display);font-weight:700;font-size:17px;margin:4px 0 10px;color:var(--ink)}
+.scrap .sim-m{background:#fff;padding:0 0 10px;box-shadow:0 4px 12px rgba(0,0,0,.08);overflow:hidden}
+.scrap .sim-k{display:flex;justify-content:space-between;align-items:center;padding:5px 12px;color:#fff;font-family:var(--display);font-weight:700;font-size:13.5px}
+.scrap .sim-k em{font-style:normal;font-size:11.5px;background:rgba(255,255,255,.25);padding:0 8px}
+.scrap .st-q .sim-k{background:#6f7a71}.scrap .st-semi .sim-k{background:#3d8b3d}.scrap .st-final .sim-k{background:#b08a2e}
+.scrap .sim-row{display:grid;grid-template-columns:1fr auto auto auto 1fr;align-items:center;gap:6px;padding:12px 10px 0}
+.scrap .sim-t{display:flex;align-items:center;gap:6px;font-family:var(--display);font-weight:700;font-size:15.5px;min-width:0;line-height:1.3}
+.scrap .sim-row .sim-t:last-child{flex-direction:row-reverse;text-align:end}
+.scrap .sim-t i{width:14px;height:14px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 2px rgba(0,0,0,.12)}
+.scrap .sim-t.ph{color:#9aa29b;font-size:13px}.scrap .sim-t.ph i{background:#e3e0d6}
 .scrap .sim-t.win{color:var(--leaf)}
-.scrap .sim-s{font-family:var(--display);font-size:20px;background:#1d2a22;color:#fff;padding:2px 10px;white-space:nowrap}
-.scrap .sim-st{display:grid;gap:2px}
-.scrap .sim-st button{width:30px;height:24px;border:1.5px solid var(--ink);background:#fff;font-weight:700;font-size:15px;line-height:1;cursor:pointer;padding:0}
-.scrap .sim-pw{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px;font-size:13.5px;font-weight:600}
-.scrap .sim-pw button{border:1.5px solid var(--ink);background:transparent;padding:3px 10px;font-family:var(--display);font-weight:700;cursor:pointer}
+.scrap .sim-s{font-family:var(--display);font-size:22px;background:#1d2a22;color:#fff;padding:3px 12px;white-space:nowrap;border-radius:8px}
+.scrap .sim-st{display:grid;gap:3px}
+.scrap .sim-st button{width:30px;height:26px;border:0;border-radius:7px;background:#eef1ea;color:var(--ink);font-weight:700;font-size:16px;line-height:1;cursor:pointer;padding:0;box-shadow:inset 0 -2px 0 rgba(0,0,0,.08)}
+.scrap .sim-st button:active{transform:translateY(1px)}
+.scrap .sim-pw{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;margin:10px 10px 0;font-size:13.5px;font-weight:600;background:#fbf6e2;padding:6px}
+.scrap .sim-pw button{border:1.5px solid var(--ink);border-radius:99px;background:#fff;padding:2px 12px;font-family:var(--display);font-weight:700;cursor:pointer}
 .scrap .sim-pw button[aria-pressed="true"]{background:var(--ink);color:#fff}
-.scrap .sim-why{font-size:13.5px;margin-top:6px;color:var(--muted)}
+.scrap .sim-why{font-size:13.5px;margin:8px 12px 0;color:var(--muted);text-align:center}
 .scrap .sim-why b{color:var(--leaf);font-family:var(--display)}
-.scrap .sim-champ{text-align:center;font-family:var(--display);font-weight:700;font-size:19px;margin:10px 0 2px}
-.scrap .sim-champ b{color:var(--leaf)}
+.scrap .sim-arrow{text-align:center;color:var(--muted);font-size:13px;line-height:1;margin:4px 0}
+.scrap .sim-champ{margin:14px 0 4px;padding:14px;text-align:center;display:grid;justify-items:center;gap:2px;background:rgba(255,255,255,.55);border:2px dashed #d6caae}
+.scrap .sim-champ svg{width:54px;height:54px;opacity:.45}
+.scrap .sim-champ small{font-size:13px;color:var(--muted);font-weight:600}
+.scrap .sim-champ.on{background:linear-gradient(160deg,#f3e6a8,#ecd25a);border:0;box-shadow:0 8px 20px rgba(176,138,46,.35)}
+.scrap .sim-champ.on svg{opacity:1;width:62px;height:62px}
+.scrap .sim-champ.on small{color:#5d4a14}
+.scrap .sim-champ b{font-family:var(--display);font-weight:700;font-size:28px;color:#1d2a22;line-height:1.2}
 .scrap .sc-ko{font-family:var(--display);font-weight:700;font-size:13px;color:var(--leaf);margin-top:8px}
 .scrap .ko-note{grid-column:1/-1;text-align:center;font-weight:700;font-size:13px;color:var(--leaf)}
 .nw-tag{display:inline-block;color:#fff;font-family:var(--display);font-weight:700;font-size:11.5px;padding:1px 8px;line-height:1.6;vertical-align:middle}
@@ -1306,7 +1320,7 @@ function pNews(n){
   return posterShell(isoNum(esc(n.title)),'',`<div class="pn-body"><div>${isoNum(esc(n.body))}</div></div>`,esc(newsWhen(n.at)==='اليوم'||newsWhen(n.at)==='أمس'?dayLabel(n.day):newsWhen(n.at)),l);
 }
 /* ---------- قوانين الكأس ومحاكي السلّم (لا يُحفظ شيء، للتجربة فقط) ---------- */
-const CUP_RULES=['يدخل الكأس الفرق الأربعة بترتيبها بعد الجولة الخامسة.','<b>الملحق:</b> الثالث × الرابع. <b>نصف النهائي:</b> الثاني × الفائز. <b>النهائي:</b> المتصدر × الفائز.','مباراة واحدة في كل مرحلة، والخاسر يودّع.','<b>التعادل الإيجابي</b> (١-١ فأكثر): يتأهل الأعلى في ترتيب الدوري، وفي النهائي يفوز باللقب.','<b>التعادل السلبي</b> (بلا أهداف): يُحسم بركلات الترجيح.','مباريات الكأس خارج جدول الترتيب ومكافآت الفوز، وأهدافها تُحسب للهدافين.'];
+const CUP_RULES=[['🏟️','أربعة فرق','يدخل الكأس الجميع بترتيبهم بعد الجولة الخامسة'],['🪜','ثلاث مراحل','الملحق: الثالث × الرابع، ثم الثاني، ثم المتصدر في النهائي'],['⚔️','مباراة واحدة','الخاسر يودّع ولا مباراة إياب'],['🤝','تعادل إيجابي','١-١ فأكثر: يتأهل الأعلى ترتيبًا، وفي النهائي يفوز باللقب'],['🎯','تعادل سلبي','بلا أهداف: تُحسم بركلات الترجيح'],['📊','خارج الترتيب','لا نقاط ولا مكافآت فوز، والأهداف تُحسب للهدافين']];
 function simLadder(){
   const d=koDay(),sim=ui.sim||(ui.sim={1:{ga:0,gb:0,pw:''},2:{ga:0,gb:0,pw:''},3:{ga:0,gb:0,pw:''}});
   const fx=sl=>S.fixtures.find(f=>f.day===d&&f.slot===sl);
@@ -1322,18 +1336,20 @@ function simLadder(){
     rows.push({sl,f,a,b,r,real:!!real,w,why});prev=w;});
   return rows;
 }
+const CUP_TROPHY='<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M18 8h28v12c0 10-6 17-14 17S18 30 18 20z" fill="#ecd25a" stroke="#1d2a22" stroke-width="2.5"/><path d="M18 13H9c0 8 4 13 10 14M46 13h9c0 8-4 13-10 14" fill="none" stroke="#1d2a22" stroke-width="3" stroke-linecap="round"/><path d="M28 37h8v8h-8z" fill="#1d2a22"/><path d="M20 45h24v8H20z" fill="#3d8b3d" stroke="#1d2a22" stroke-width="2.5"/></svg>';
 function cupRules(){
   const rows=simLadder(),champ=rows.length===3&&rows[2].w;
-  const step=(x,k,side)=>x.real?'':`<span class="sim-st"><button data-act="sim" data-k="${x.sl}" data-s="${side}" data-d="1" aria-label="زيادة">+</button><button data-act="sim" data-k="${x.sl}" data-s="${side}" data-d="-1" aria-label="إنقاص">−</button></span>`;
-  const sim=rows.map(x=>`<div class="sim-m${x.real?' real':''}"><div class="sim-k">${KO_STAGE[x.f.ko]}${x.real?' · النتيجة الفعلية':''}</div>
-    <div class="sim-row"><span class="sim-t ${x.w===x.a?'win':''}">${x.a?esc(T(x.a).name):'؟'}</span>${step(x,x.sl,'a')}<b class="sim-s num">${ar(x.r.ga)} - ${ar(x.r.gb)}</b>${step(x,x.sl,'b')}<span class="sim-t b ${x.w===x.b?'win':''}">${x.b?esc(T(x.b).name):'الفائز'}</span></div>
-    ${!x.real&&x.r.ga===0&&x.r.gb===0&&x.a&&x.b?`<div class="sim-pw">الفائز بالترجيح: ${[x.a,x.b].map(t=>`<button data-act="simpw" data-k="${x.sl}" data-t="${t}" aria-pressed="${x.r.pw===t}">${esc(T(t).name)}</button>`).join('')}</div>`:''}
-    <div class="sim-why">${x.w?`يتأهل <b>${esc(T(x.w).name)}</b> · ${x.why}`:esc(x.why)}</div></div>`).join('');
-  return `<ol class="sim-rules">${CUP_RULES.map(r=>`<li>${r}</li>`).join('')}</ol>
-  <div class="sim-h">جرّب السلّم: غيّر النتائج وشاهد من يتأهل</div>${sim}
-  <div class="sim-champ">${champ?`🏆 البطل في تجربتك: <b>${esc(T(champ).name)}</b>`:'أكمل النتائج لترى البطل'}</div>
+  const team=(id,win,lbl)=>id?`<span class="sim-t${win?' win':''}"><i style="background:${T(id).color}"></i>${esc(T(id).name)}${win?' ✓':''}</span>`:`<span class="sim-t ph"><i></i>${lbl}</span>`;
+  const step=(x,side)=>x.real?'':`<span class="sim-st"><button data-act="sim" data-k="${x.sl}" data-s="${side}" data-d="1" aria-label="زيادة">+</button><button data-act="sim" data-k="${x.sl}" data-s="${side}" data-d="-1" aria-label="إنقاص">−</button></span>`;
+  const sim=rows.map((x,i)=>`<div class="sim-m st-${x.f.ko}${x.real?' real':''}"><div class="sim-k"><span>${KO_STAGE[x.f.ko]}</span>${x.real?'<em>النتيجة الفعلية</em>':''}</div>
+    <div class="sim-row">${team(x.a,x.w&&x.w===x.a)}${step(x,'a')}<b class="sim-s num">${ar(x.r.ga)} - ${ar(x.r.gb)}</b>${step(x,'b')}${team(x.b,x.w&&x.w===x.b,i===2?'الفائز من نصف النهائي':'الفائز من الملحق')}</div>
+    ${!x.real&&x.r.ga===0&&x.r.gb===0&&x.a&&x.b?`<div class="sim-pw"><span>🎯 الفائز بالترجيح:</span>${[x.a,x.b].map(t=>`<button data-act="simpw" data-k="${x.sl}" data-t="${t}" aria-pressed="${x.r.pw===t}">${esc(T(t).name)}</button>`).join('')}</div>`:''}
+    <div class="sim-why">${x.w?`${i===2?'يرفع الكأس':'يتأهل'} <b>${esc(T(x.w).name)}</b> · ${x.why}`:esc(x.why)}</div></div>${i<rows.length-1?'<div class="sim-arrow">▼</div>':''}`).join('');
+  return `<div class="sim-rules">${CUP_RULES.map(([ic,h,t])=>`<div class="sim-rule"><span class="ic">${ic}</span><b>${h}</b><span>${t}</span></div>`).join('')}</div>
+  <div class="sim-h"><span>🎮</span>جرّب السلّم: غيّر النتائج وشاهد من يتأهل</div>${sim}
+  <div class="sim-champ${champ?' on':''}">${CUP_TROPHY}${champ?`<small>البطل في تجربتك</small><b>${esc(T(champ).name)}</b>`:'<small>أكمل النتائج لترى البطل</small>'}</div>
   <div class="sc-row"><button class="gbtn dark" data-act="simreset">تصفير التجربة</button></div>
-  <p class="sc-sub" style="margin-top:8px">هذه تجربة على جوالك فقط، ولا تغيّر نتائج الدوري.</p>`;
+  <p class="sc-sub" style="margin-top:8px;text-align:center">تجربة على جوالك فقط، ولا تغيّر نتائج الدوري.</p>`;
 }
 /* ---------- students' page: season scrapbook ---------- */
 const SCRAP_ICONS={ball:'<circle cx="23" cy="23" r="19" fill="#fff" stroke="#1d2a22" stroke-width="3"/><path d="M23 12l8 6-3 10h-10l-3-10z" fill="#1d2a22"/><path d="M23 4v8M31 18l10-3M28 28l6 9M18 28l-6 9M15 18L5 15" stroke="#1d2a22" stroke-width="2.5"/>',
