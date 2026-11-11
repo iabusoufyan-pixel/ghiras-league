@@ -577,6 +577,40 @@ body.scrap #root{max-width:none;padding:0}
 .status.warnbox{background:var(--soft);border:1px solid var(--warn);border-radius:10px;padding:8px 12px;color:var(--ink)}
 .status.dirty{position:sticky;top:76px;z-index:30;box-shadow:0 6px 18px rgba(0,0,0,.25)}
 .lj .status.dirty{border:2px solid var(--bad)}
+.scrap .sim-rules{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.scrap .sim-rule{background:rgba(255,255,255,.7);padding:10px;display:grid;gap:2px;align-content:start;border-top:3px solid var(--tape);box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.scrap .sim-rule:nth-child(3n+2){border-top-color:var(--leaf)}.scrap .sim-rule:nth-child(3n){border-top-color:#b08a2e}
+.scrap .sim-rule .ic{font-size:22px;line-height:1.2}
+.scrap .sim-rule b{font-family:var(--display);font-weight:700;font-size:15.5px}
+.scrap .sim-rule span:last-child{font-size:13px;line-height:1.6;color:#4f5a52}
+.scrap .sim-h{display:flex;align-items:center;gap:6px;font-family:var(--display);font-weight:700;font-size:17px;margin:4px 0 10px;color:var(--ink)}
+.scrap .sim-m{background:#fff;padding:0 0 10px;box-shadow:0 4px 12px rgba(0,0,0,.08);overflow:hidden}
+.scrap .sim-k{display:flex;justify-content:space-between;align-items:center;padding:5px 12px;color:#fff;font-family:var(--display);font-weight:700;font-size:13.5px}
+.scrap .sim-k em{font-style:normal;font-size:11.5px;background:rgba(255,255,255,.25);padding:0 8px}
+.scrap .st-q .sim-k{background:#6f7a71}.scrap .st-semi .sim-k{background:#3d8b3d}.scrap .st-final .sim-k{background:#b08a2e}
+.scrap .sim-row{display:grid;grid-template-columns:1fr auto auto auto 1fr;align-items:center;gap:6px;padding:12px 10px 0}
+.scrap .sim-t{display:flex;align-items:center;gap:6px;font-family:var(--display);font-weight:700;font-size:15.5px;min-width:0;line-height:1.3}
+.scrap .sim-row .sim-t:last-child{flex-direction:row-reverse;text-align:end}
+.scrap .sim-t i{width:14px;height:14px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 2px rgba(0,0,0,.12)}
+.scrap .sim-t.ph{color:#9aa29b;font-size:13px}.scrap .sim-t.ph i{background:#e3e0d6}
+.scrap .sim-t.win{color:var(--leaf)}
+.scrap .sim-s{font-family:var(--display);font-size:22px;background:#1d2a22;color:#fff;padding:3px 12px;white-space:nowrap;border-radius:8px}
+.scrap .sim-st{display:grid;gap:3px}
+.scrap .sim-st button{width:30px;height:26px;border:0;border-radius:7px;background:#eef1ea;color:var(--ink);font-weight:700;font-size:16px;line-height:1;cursor:pointer;padding:0;box-shadow:inset 0 -2px 0 rgba(0,0,0,.08)}
+.scrap .sim-st button:active{transform:translateY(1px)}
+.scrap .sim-pw{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;margin:10px 10px 0;font-size:13.5px;font-weight:600;background:#fbf6e2;padding:6px}
+.scrap .sim-pw button{border:1.5px solid var(--ink);border-radius:99px;background:#fff;padding:2px 12px;font-family:var(--display);font-weight:700;cursor:pointer}
+.scrap .sim-pw button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.scrap .sim-why{font-size:13.5px;margin:8px 12px 0;color:var(--muted);text-align:center}
+.scrap .sim-why b{color:var(--leaf);font-family:var(--display)}
+.scrap .sim-arrow{text-align:center;color:var(--muted);font-size:13px;line-height:1;margin:4px 0}
+.scrap .sim-champ{margin:14px 0 4px;padding:14px;text-align:center;display:grid;justify-items:center;gap:2px;background:rgba(255,255,255,.55);border:2px dashed #d6caae}
+.scrap .sim-champ svg{width:54px;height:54px;opacity:.45}
+.scrap .sim-champ small{font-size:13px;color:var(--muted);font-weight:600}
+.scrap .sim-champ.on{background:linear-gradient(160deg,#f3e6a8,#ecd25a);border:0;box-shadow:0 8px 20px rgba(176,138,46,.35)}
+.scrap .sim-champ.on svg{opacity:1;width:62px;height:62px}
+.scrap .sim-champ.on small{color:#5d4a14}
+.scrap .sim-champ b{font-family:var(--display);font-weight:700;font-size:28px;color:#1d2a22;line-height:1.2}
 .scrap .sc-ko{font-family:var(--display);font-weight:700;font-size:13px;color:var(--leaf);margin-top:8px}
 .scrap .ko-note{grid-column:1/-1;text-align:center;font-weight:700;font-size:13px;color:var(--leaf)}
 .nw-tag{display:inline-block;color:#fff;font-family:var(--display);font-weight:700;font-size:11.5px;padding:1px 8px;line-height:1.6;vertical-align:middle}
@@ -1285,6 +1319,38 @@ function pNews(n){
   const [l]=newsTag(n.tag);
   return posterShell(isoNum(esc(n.title)),'',`<div class="pn-body"><div>${isoNum(esc(n.body))}</div></div>`,esc(newsWhen(n.at)==='اليوم'||newsWhen(n.at)==='أمس'?dayLabel(n.day):newsWhen(n.at)),l);
 }
+/* ---------- قوانين الكأس ومحاكي السلّم (لا يُحفظ شيء، للتجربة فقط) ---------- */
+const CUP_RULES=[['🏟️','أربعة فرق','يدخل الكأس الجميع بترتيبهم بعد الجولة الخامسة'],['🪜','ثلاث مراحل','الملحق: الثالث × الرابع، ثم الثاني، ثم المتصدر في النهائي'],['⚔️','مباراة واحدة','الخاسر يودّع ولا مباراة إياب'],['🤝','تعادل إيجابي','١-١ فأكثر: يتأهل الأعلى ترتيبًا، وفي النهائي يفوز باللقب'],['🎯','تعادل سلبي','بلا أهداف: تُحسم بركلات الترجيح'],['📊','خارج الترتيب','لا نقاط ولا مكافآت فوز، والأهداف تُحسب للهدافين']];
+function simLadder(){
+  const d=koDay(),sim=ui.sim||(ui.sim={1:{ga:0,gb:0,pw:''},2:{ga:0,gb:0,pw:''},3:{ga:0,gb:0,pw:''}});
+  const fx=sl=>S.fixtures.find(f=>f.day===d&&f.slot===sl);
+  const rows=[];let prev=null;
+  [1,2,3].forEach(sl=>{const f=fx(sl);if(!f)return;const real=matchAt(d,sl);
+    const a=real?real.a:(f.sa&&f.sa.startsWith('seed')?seedId(+f.sa.slice(4)):f.a);
+    const b=real?real.b:(f.sb==='w1'||f.sb==='w2'?prev:(f.sb&&f.sb.startsWith('seed')?seedId(+f.sb.slice(4)):f.b));
+    const r=real?{ga:real.ga,gb:real.gb,pw:real.pw||''}:sim[sl];
+    let w=null,why='';
+    if(a&&b){if(r.ga!==r.gb){w=r.ga>r.gb?a:b;why='بالأهداف'}
+      else if(r.ga>0){w=koHigher(a,b);why='تعادل إيجابي: الأعلى ترتيبًا'}
+      else{w=r.pw||null;why=w?'تعادل سلبي: بركلات الترجيح':'تعادل سلبي: اختر الفائز بالترجيح'}}
+    rows.push({sl,f,a,b,r,real:!!real,w,why});prev=w;});
+  return rows;
+}
+const CUP_TROPHY='<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M18 8h28v12c0 10-6 17-14 17S18 30 18 20z" fill="#ecd25a" stroke="#1d2a22" stroke-width="2.5"/><path d="M18 13H9c0 8 4 13 10 14M46 13h9c0 8-4 13-10 14" fill="none" stroke="#1d2a22" stroke-width="3" stroke-linecap="round"/><path d="M28 37h8v8h-8z" fill="#1d2a22"/><path d="M20 45h24v8H20z" fill="#3d8b3d" stroke="#1d2a22" stroke-width="2.5"/></svg>';
+function cupRules(){
+  const rows=simLadder(),champ=rows.length===3&&rows[2].w;
+  const team=(id,win,lbl)=>id?`<span class="sim-t${win?' win':''}"><i style="background:${T(id).color}"></i>${esc(T(id).name)}${win?' ✓':''}</span>`:`<span class="sim-t ph"><i></i>${lbl}</span>`;
+  const step=(x,side)=>x.real?'':`<span class="sim-st"><button data-act="sim" data-k="${x.sl}" data-s="${side}" data-d="1" aria-label="زيادة">+</button><button data-act="sim" data-k="${x.sl}" data-s="${side}" data-d="-1" aria-label="إنقاص">−</button></span>`;
+  const sim=rows.map((x,i)=>`<div class="sim-m st-${x.f.ko}${x.real?' real':''}"><div class="sim-k"><span>${KO_STAGE[x.f.ko]}</span>${x.real?'<em>النتيجة الفعلية</em>':''}</div>
+    <div class="sim-row">${team(x.a,x.w&&x.w===x.a)}${step(x,'a')}<b class="sim-s num">${ar(x.r.ga)} - ${ar(x.r.gb)}</b>${step(x,'b')}${team(x.b,x.w&&x.w===x.b,i===2?'الفائز من نصف النهائي':'الفائز من الملحق')}</div>
+    ${!x.real&&x.r.ga===0&&x.r.gb===0&&x.a&&x.b?`<div class="sim-pw"><span>🎯 الفائز بالترجيح:</span>${[x.a,x.b].map(t=>`<button data-act="simpw" data-k="${x.sl}" data-t="${t}" aria-pressed="${x.r.pw===t}">${esc(T(t).name)}</button>`).join('')}</div>`:''}
+    <div class="sim-why">${x.w?`${i===2?'يرفع الكأس':'يتأهل'} <b>${esc(T(x.w).name)}</b> · ${x.why}`:esc(x.why)}</div></div>${i<rows.length-1?'<div class="sim-arrow">▼</div>':''}`).join('');
+  return `<div class="sim-rules">${CUP_RULES.map(([ic,h,t])=>`<div class="sim-rule"><span class="ic">${ic}</span><b>${h}</b><span>${t}</span></div>`).join('')}</div>
+  <div class="sim-h"><span>🎮</span>جرّب السلّم: غيّر النتائج وشاهد من يتأهل</div>${sim}
+  <div class="sim-champ${champ?' on':''}">${CUP_TROPHY}${champ?`<small>البطل في تجربتك</small><b>${esc(T(champ).name)}</b>`:'<small>أكمل النتائج لترى البطل</small>'}</div>
+  <div class="sc-row"><button class="gbtn dark" data-act="simreset">تصفير التجربة</button></div>
+  <p class="sc-sub" style="margin-top:8px;text-align:center">تجربة على جوالك فقط، ولا تغيّر نتائج الدوري.</p>`;
+}
 /* ---------- students' page: season scrapbook ---------- */
 const SCRAP_ICONS={ball:'<circle cx="23" cy="23" r="19" fill="#fff" stroke="#1d2a22" stroke-width="3"/><path d="M23 12l8 6-3 10h-10l-3-10z" fill="#1d2a22"/><path d="M23 4v8M31 18l10-3M28 28l6 9M18 28l-6 9M15 18L5 15" stroke="#1d2a22" stroke-width="2.5"/>',
  whistle:'<circle cx="18" cy="28" r="12" fill="#ecd25a" stroke="#1d2a22" stroke-width="3"/><path d="M24 18h16v8H28" fill="#ecd25a" stroke="#1d2a22" stroke-width="3" stroke-linejoin="round"/><circle cx="18" cy="28" r="3" fill="#1d2a22"/>',
@@ -1326,6 +1392,8 @@ function scrapView(){
   fanPolls().forEach(p=>{const mine=myVote(p.id),voted=mine!=null;
     body+=ch('poll',esc(p.q),p.open&&!voted?'صوت واحد لكل جوال، والتصويت سري':'',
       (p.open&&!voted)?p.options.map((o,i)=>`<button class="sc-opt" data-act="vote" data-id="${p.id}" data-k="${i}">${esc(o)}</button>`).join(''):fanResult(p,mine))});
+  // cup rules + ladder simulator
+  if(koDay()&&leagueDone())body+=ch('rules','قوانين كأس غراس','اقرأ القوانين، ثم جرّب السلّم بنفسك',cupRules());
   // daily news
   const allNews=newsSorted(),shownNews=ui.nall?allNews:allNews.slice(0,4);
   if(allNews.length)body+=ch('news','آخر الأخبار','خبر قصير كل يوم، وتُجمع الأخبار في جريدة الجولة',`<div class="sc-news">${shownNews.map(n=>`<article class="sc-nw"><div class="sc-nw-top"><span class="nw-tag" style="background:${newsTag(n.tag)[1]}">${newsTag(n.tag)[0]}</span><span class="when">${esc(newsWhen(n.at))}</span><button class="sc-ico" data-act="fanpng" data-k="news-${n.id}" aria-label="مشاركة صورة الخبر"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg></button></div><h3>${esc(n.title)}</h3>${n.body?`<p>${esc(n.body)}</p>`:''}</article>`).join('')}</div>${allNews.length>4?`<div class="sc-row"><button class="ybtn" data-act="nall">${ui.nall?'عرض أحدث الأخبار فقط':'كل الأخبار ('+ar(allNews.length)+')'}</button></div>`:''}`);
@@ -1533,6 +1601,9 @@ root.addEventListener('click',async ev=>{
   if(act==='logout'){logout();toast('خرجت من وضع اللجنة');return}
   if(act==='retrysave'){await save(ui.dirty);return}
   if(act==='nall'){ui.nall=!ui.nall;render();return}
+  if(act==='sim'){const r=ui.sim[b.dataset.k];const k=b.dataset.s==='a'?'ga':'gb';r[k]=Math.max(0,Math.min(20,r[k]+(+b.dataset.d)));if(r.ga||r.gb)r.pw='';ui.anc='sc-rules';render();return}
+  if(act==='simpw'){ui.sim[b.dataset.k].pw=b.dataset.t;ui.anc='sc-rules';render();return}
+  if(act==='simreset'){ui.sim=null;ui.anc='sc-rules';render();return}
   if(act==='nsugg'){const sg=newsSuggestions()[+b.dataset.k];if(sg){ui.nDraft={id:null,...sg};render();const t=document.getElementById('nw-title');if(t){t.scrollIntoView({block:'center'});t.focus()}}return}
   if(act==='ncancel'){ui.nDraft=null;render();return}
   if(act==='nedit'){const n=S.news.find(x=>x.id===b.dataset.id);if(n){ui.nDraft={...n};ui.confirm=null;render();const t=document.getElementById('nw-title');if(t){t.scrollIntoView({block:'center'});t.focus()}}return}
