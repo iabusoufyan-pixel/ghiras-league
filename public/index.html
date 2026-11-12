@@ -1479,7 +1479,8 @@ function render(){
   if(!isLajna()){document.body.classList.remove('lj');
     // نثبت القسم الذي يتعامل معه الطالب في مكانه على الشاشة حتى لا تقفز الصفحة بعد إعادة الرسم
     let anc=ui.anc&&document.getElementById(ui.anc);ui.anc=null;
-    if(!anc)anc=[...root.querySelectorAll('[id^="sc-"]')].find(e=>e.getBoundingClientRect().bottom>70);
+    // لا نثبّت شيئًا لمن هو في أعلى الصفحة (فتح الرابط للتو)، حتى لا تقفز به الصفحة إلى منتصفها بعد تحميل البيانات
+    if(!anc&&window.scrollY>40)anc=[...root.querySelectorAll('[id^="sc-"]')].find(e=>e.getBoundingClientRect().bottom>70);
     const id=anc&&anc.id,top=anc?anc.getBoundingClientRect().top:0;
     document.body.classList.add('scrap');root.innerHTML=scrapView();tornEdges();
     const el=id&&document.getElementById(id);if(el){const d=el.getBoundingClientRect().top-top;if(Math.abs(d)>1)window.scrollBy(0,d)}
