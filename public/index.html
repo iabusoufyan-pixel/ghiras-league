@@ -577,6 +577,36 @@ body.scrap #root{max-width:none;padding:0}
 .status.warnbox{background:var(--soft);border:1px solid var(--warn);border-radius:10px;padding:8px 12px;color:var(--ink)}
 .status.dirty{position:sticky;top:76px;z-index:30;box-shadow:0 6px 18px rgba(0,0,0,.25)}
 .lj .status.dirty{border:2px solid var(--bad)}
+.scrap .fn-ph{position:relative;background:#fff;padding:6px;box-shadow:0 8px 18px rgba(0,0,0,.18);transform:rotate(-1deg)}
+.scrap .fn-ph img{display:block;width:100%;height:auto}
+.scrap .fn-ph .tape{position:absolute;top:-10px;left:50%;width:84px;height:22px;background:rgba(236,210,90,.9);transform:translateX(-50%) rotate(-3deg)}
+.scrap .fn-champ{display:grid;justify-items:center;text-align:center;gap:2px}
+.scrap .fn-champ .fn-ph{width:100%;margin-bottom:-18px}
+.scrap .fn-champ svg{width:62px;height:62px;position:relative;z-index:1;filter:drop-shadow(0 4px 6px rgba(0,0,0,.25))}
+.scrap .fn-champ small{font-family:var(--display);font-weight:700;color:#b08a2e;font-size:15px}
+.scrap .fn-champ b{font-family:var(--display);font-weight:700;font-size:40px;line-height:1.15}
+.scrap .fn-champ span{font-size:14px;color:var(--muted);font-weight:600}
+.scrap .fn-two{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
+.scrap .fn-card{display:grid;justify-items:center;text-align:center;gap:1px;background:rgba(255,255,255,.55);padding:10px 8px}
+.scrap .fn-card .fn-ph{width:100%;margin-bottom:8px}.scrap .fn-card:nth-child(2) .fn-ph{transform:rotate(1.5deg)}
+.scrap .fn-card small{font-family:var(--display);font-weight:700;color:var(--leaf);font-size:13px}
+.scrap .fn-card b{font-family:var(--display);font-weight:700;font-size:20px;line-height:1.3}
+.scrap .fn-card span{font-size:12.5px;color:var(--muted);font-weight:600}
+.scrap .fn-card i{font-style:normal;margin-top:4px;background:#1d2a22;color:#fff;font-family:var(--display);font-weight:700;padding:1px 10px;font-size:14px}
+.scrap .fn-h{font-family:var(--display);font-weight:700;font-size:17px;margin:18px 0 8px;border-bottom:1.5px dashed #d6caae;padding-bottom:4px}
+.scrap .fn-ko{display:grid;grid-template-columns:1fr auto 1fr;gap:4px 8px;align-items:center;text-align:center;background:rgba(255,255,255,.6);padding:8px;margin-bottom:6px}
+.scrap .fn-ko em{grid-column:1/-1;font-style:normal;font-family:var(--display);font-weight:700;font-size:12.5px;color:var(--muted)}
+.scrap .fn-ko span{font-family:var(--display);font-weight:700;font-size:15px}.scrap .fn-ko span.w{color:var(--leaf)}
+.scrap .fn-ko b{background:#1d2a22;color:#fff;font-family:var(--display);padding:1px 10px;font-size:16px}
+.scrap .fn-ko small{grid-column:1/-1;font-size:12px;color:var(--leaf);font-weight:600}
+.scrap .fn-sc{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.scrap .fn-sc li{display:flex;justify-content:space-between;background:rgba(255,255,255,.6);padding:6px 10px;font-family:var(--display);font-weight:700}
+.scrap .fn-sc li:first-child{background:#f3e6a8}
+.scrap .fn-nums{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:16px;text-align:center}
+.scrap .fn-nums div{background:#1d2a22;color:#fff;padding:8px 2px}
+.scrap .fn-nums b{display:block;font-family:var(--display);font-size:24px;color:#ecd25a;line-height:1.2}
+.scrap .fn-nums span{font-size:12px;font-weight:600}
+.scrap .fn-thanks{text-align:center;font-family:var(--display);font-weight:700;font-size:16px;margin:16px 0 0;line-height:1.8}
 .scrap .sim-rules{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
 .scrap .sim-rule{background:rgba(255,255,255,.7);padding:10px;display:grid;gap:2px;align-content:start;border-top:3px solid var(--tape);box-shadow:0 2px 6px rgba(0,0,0,.06)}
 .scrap .sim-rule:nth-child(3n+2){border-top-color:var(--leaf)}.scrap .sim-rule:nth-child(3n){border-top-color:#b08a2e}
@@ -1351,6 +1381,25 @@ function cupRules(){
   <div class="sc-row"><button class="gbtn dark" data-act="simreset">تصفير التجربة</button></div>
   <p class="sc-sub" style="margin-top:8px;text-align:center">تجربة على جوالك فقط، ولا تغيّر نتائج الدوري.</p>`;
 }
+/* ---------- ختام الموسم: صفحة أرشيفية من بيانات الدوري وصور الموسم ---------- */
+function finaleView(){
+  const F=S.finale,d=koDay(),champ=champion(),fin=d&&S.fixtures.find(f=>f.day===d&&f.ko==='final'),fm=fin&&matchAt(d,fin.slot);
+  const tb=table(d?d-1:99),sc=scorers(),games=S.matches.length,goals=S.matches.reduce((t,m)=>t+m.ga+m.gb,0);
+  const photo=(src,cls)=>src?`<div class="fn-ph ${cls||''}"><span class="tape"></span><img src="${esc(src)}" alt="" loading="lazy"></div>`:'';
+  const person=(x,label,stat)=>x?`<div class="fn-card">${photo(x.photo)}<small>${label}</small><b>${esc(x.name)}</b>${x.team?`<span>${esc(T(x.team).name)}</span>`:''}<i class="num">${stat}</i>${x.note?`<p>${esc(x.note)}</p>`:''}</div>`:'';
+  const ko=d?S.fixtures.filter(f=>f.day===d&&f.ko).sort((a,b)=>a.slot-b.slot).map(f=>{const m=matchAt(d,f.slot);return m?`<div class="fn-ko"><em>${KO_STAGE[f.ko]}</em><span class="${koWinner(m)===m.a?'w':''}">${esc(T(m.a).name)}</span><b class="num">${ar(m.ga)} - ${ar(m.gb)}</b><span class="${koWinner(m)===m.b?'w':''}">${esc(T(m.b).name)}</span>${koNote(m)?`<small>${koNote(m)}</small>`:''}</div>`:''}).join(''):'';
+  const scorerOf=n=>sc.find(e=>nm(e.name)===nm(n));
+  const top=scorerOf((F.scorer||{}).name||''),best=scorerOf((F.best||{}).name||'');
+  return `<div class="fn-champ">${photo(F.teamPhoto,'wide')}${CUP_TROPHY}<small>أبطال كأس غراس</small><b>${esc(T(champ).name)}</b>${fm?`<span>النهائي: ${esc(T(fm.a).name)} ${ar(fm.ga)} - ${ar(fm.gb)} ${esc(T(fm.b).name)}</span>`:''}</div>
+  <div class="fn-two">${person(F.scorer,'هدّاف الموسم',top?count(top.g,'goal'):'')}${person(F.best,'أفضل لاعب',best?count(best.g,'goal'):'')}</div>
+  ${ko?`<div class="fn-h">طريق الكأس</div>${ko}`:''}
+  <div class="fn-h">الترتيب النهائي للدوري</div>
+  <table class="sc-tbl fn-tbl"><thead><tr><th></th><th class="t">الفريق</th><th>لعب</th><th>±</th><th>نقاط</th></tr></thead><tbody>${tb.map((r,i)=>`<tr class="${i===0?'top':''}"><td><span class="pos num">${ar(i+1)}</span></td><td class="t">${esc(T(r.id).name)}</td><td>${ar(r.p)}</td><td>${signed(r.gf-r.ga)}</td><td class="p">${ar(r.pts)}</td></tr>`).join('')}</tbody></table>
+  <div class="fn-h">أبرز الهدافين</div>
+  <ol class="fn-sc">${sc.slice(0,5).map(e=>`<li><span>${esc(e.name)}</span><b class="num">${ar(e.g)}</b></li>`).join('')}</ol>
+  <div class="fn-nums"><div><b class="num">${ar(games)}</b><span>${noun(games,'match')}</span></div><div><b class="num">${ar(goals)}</b><span>${noun(goals,'goal')}</span></div><div><b class="num">${ar((S.loanLog||[]).length)}</b><span>${noun((S.loanLog||[]).length,'loan')}</span></div></div>
+  ${F.thanks?`<p class="fn-thanks">${esc(F.thanks)}</p>`:''}`;
+}
 /* ---------- students' page: season scrapbook ---------- */
 const SCRAP_ICONS={ball:'<circle cx="23" cy="23" r="19" fill="#fff" stroke="#1d2a22" stroke-width="3"/><path d="M23 12l8 6-3 10h-10l-3-10z" fill="#1d2a22"/><path d="M23 4v8M31 18l10-3M28 28l6 9M18 28l-6 9M15 18L5 15" stroke="#1d2a22" stroke-width="2.5"/>',
  whistle:'<circle cx="18" cy="28" r="12" fill="#ecd25a" stroke="#1d2a22" stroke-width="3"/><path d="M24 18h16v8H28" fill="#ecd25a" stroke="#1d2a22" stroke-width="3" stroke-linejoin="round"/><circle cx="18" cy="28" r="3" fill="#1d2a22"/>',
@@ -1388,12 +1437,14 @@ function scrapView(){
   const ch=(id,title,sub,body,kraft,share)=>{n++;chs.push([id,title]);const on=saved.includes(id);
     return `<section class="sc-ch sheet" id="sc-${id}">${tag(n)}<div class="paper ${kraft?'kraft':''}"><div class="sc-h"><div><div class="sc-n num">${ar(String(n).padStart(2,'0'))}</div><h2>${title}</h2></div><div class="sc-hb">${share?`<button class="sc-ico" data-act="fanpng" data-k="${share}" aria-label="مشاركة الصورة"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg></button>`:''}<button class="sc-ico mark" data-act="scsave" data-k="${id}" aria-pressed="${on}" aria-label="${on?'إزالة من المحفوظة':'احفظ القسم'}">${MARK}</button></div></div>${sub?`<p class="sc-sub">${sub}</p>`:''}${body}</div></section>`};
   let body='';
+  // ختام الموسم: أول ما يُرى، ويبقى أرشيفًا
+  if(S.finale&&S.finale.on)body+=ch('finale',esc(S.finale.title||'ختام الموسم'),esc(S.finale.sub||''),finaleView(),true);
   // poll
   fanPolls().forEach(p=>{const mine=myVote(p.id),voted=mine!=null;
     body+=ch('poll',esc(p.q),p.open&&!voted?'صوت واحد لكل جوال، والتصويت سري':'',
       (p.open&&!voted)?p.options.map((o,i)=>`<button class="sc-opt" data-act="vote" data-id="${p.id}" data-k="${i}">${esc(o)}</button>`).join(''):fanResult(p,mine))});
   // cup rules + ladder simulator
-  if(koDay()&&leagueDone())body+=ch('rules','قوانين كأس غراس','اقرأ القوانين، ثم جرّب السلّم بنفسك',cupRules());
+  if(koDay()&&leagueDone()&&!(S.finale&&S.finale.on))body+=ch('rules','قوانين كأس غراس','اقرأ القوانين، ثم جرّب السلّم بنفسك',cupRules());
   // daily news
   const allNews=newsSorted(),shownNews=ui.nall?allNews:allNews.slice(0,4);
   if(allNews.length)body+=ch('news','آخر الأخبار','خبر قصير كل يوم، وتُجمع الأخبار في جريدة الجولة',`<div class="sc-news">${shownNews.map(n=>`<article class="sc-nw"><div class="sc-nw-top"><span class="nw-tag" style="background:${newsTag(n.tag)[1]}">${newsTag(n.tag)[0]}</span><span class="when">${esc(newsWhen(n.at))}</span><button class="sc-ico" data-act="fanpng" data-k="news-${n.id}" aria-label="مشاركة صورة الخبر"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg></button></div><h3>${esc(n.title)}</h3>${n.body?`<p>${esc(n.body)}</p>`:''}</article>`).join('')}</div>${allNews.length>4?`<div class="sc-row"><button class="ybtn" data-act="nall">${ui.nall?'عرض أحدث الأخبار فقط':'كل الأخبار ('+ar(allNews.length)+')'}</button></div>`:''}`);
